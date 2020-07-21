@@ -14,7 +14,7 @@ class NotModerator(BanhammerException):
 class NoRedditInstance(BanhammerException):
     def __init__(self):
         super(NoRedditInstance, self).__init__(
-            "No <praw.Reddit> instance was given to the <banhammer.Subreddit> object.")
+            "No <apraw.Reddit> instance was given to the <banhammer.Subreddit> object.")
 
 
 class NoItemGiven(BanhammerException):

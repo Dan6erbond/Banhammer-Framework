@@ -1,28 +1,31 @@
 import re
 from urllib.parse import urlparse
 
+import apraw
+
 from .item import RedditItem
 
+URL_PATTERN = re.compile(r"((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\.com|\.it){1}([a-zA-Z0-9\/_]+))")
 
-def get_item(reddit, subreddits, str):
-    reg = "((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\.com|\.it){1}([a-zA-Z0-9\/_]+))"
-    for u in re.findall(reg, str):
+
+async def get_item(reddit: apraw.Reddit, subreddits, str):
+    for u in URL_PATTERN.findall(str):
         if is_url(u[0]):
             item = get_item_from_url(reddit, subreddits, u[0])
-            if item is not None:
+            if item:
                 return item
             else:
                 continue
     return None
 
 
-def get_item_from_url(reddit, subreddits, url):
+async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
     if url.startswith("https://mod.reddit.com/mail/all/"):
         id = url.split("/")[-1] if url.split("/")[-1] != "" else url.split("/")[-2]
 
         for subreddit in subreddits:
             try:
-                modmail = subreddit.subreddit.modmail(id)
+                modmail = await subreddit._subreddit.modmail(id)
                 if hasattr(modmail, "subject"):
                     return RedditItem(modmail, subreddit, "url")
             except Exception as e:
@@ -32,20 +35,19 @@ def get_item_from_url(reddit, subreddits, url):
 
     item = None
     try:
-        item = reddit.comment(url=url)
-    except:
+        item = await reddit.comment(url=url)
+    except Exception:
         try:
-            item = reddit.submission(url=url)
-        except:
-            print("Invalid URL!")
+            item = await reddit.submission(url=url)
+        except Exception as e:
+            print("Invalid URL:", e)
             return None
 
     try:
         if not hasattr(item, "subreddit"):  # truly verify if it's a reddit comment or submission
             return None
-    except:
+    except Exception:
         return None
-
 
     subreddit = None
     for sub in subreddits:
@@ -58,7 +60,4 @@ def get_item_from_url(reddit, subreddits, url):
 
 def is_url(url):
     check = urlparse(url)
-    if check.scheme != "" and check.netloc != "":
-        return True
-    else:
-        return False
+    return check.scheme != "" and check.netloc != ""

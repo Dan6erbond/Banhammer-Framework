@@ -1,4 +1,5 @@
-import praw
+from apraw.models import (Comment, ModmailConversation, ModmailMessage,
+                          Submission)
 
 from . import exceptions
 from . import item as reddititem
@@ -21,15 +22,16 @@ class ReactionPayload:
     def feed(self, item, approved, user="", emoji="", reply=""):
         self.item = item
         self.approved = approved
-        if user != "": self.user = user
+        if user != "":
+            self.user = user
         self.reply = reply
 
     def get_message(self):
-        if len(self.actions) == 0: self.actions.append("dismissed")
-        return "**{} {} by {}!**\n\n" \
-               "{} by /u/{}:\n\n" \
-               "{}".format(self.item.type.title(), " and ".join(self.actions), self.user,
-                           self.item.type.title(), self.item.get_author_name(), self.item.get_url())
+        if len(self.actions) == 0:
+            self.actions.append("dismissed")
+        return f"**{self.item.type.title()} {' and '.join(self.actions)} by {self.user}!**\n\n" \
+               f"{self.item.type.title()} by /u/{self.item.get_author_name()}:\n\n" \
+               f"{self.item.get_url()}"
 
 
 class ReactionHandler:
@@ -38,8 +40,8 @@ class ReactionHandler:
         return self.gen_handle(reaction, item, payload)
 
     def gen_handle(self, reaction, item, payload):
-        if type(item.item) in [praw.models.ModmailMessage, praw.models.ModmailConversation]:
-            conversation = item.item.conversation if isinstance(item, praw.models.ModmailMessage) else item.item
+        if isinstance(item.item, (ModmailConversation, ModmailMessage)):
+            conversation = item.item.conversation if isinstance(item, ModmailMessage) else item.item
             if reaction.archive:
                 conversation.archive()
                 payload.actions.append("archived")
@@ -51,8 +53,8 @@ class ReactionHandler:
                 payload.actions.append("replied to")
             return payload
 
-        is_submission = isinstance(item.item, praw.models.Submission)
-        # is_comment = isinstance(item.item, praw.models.Comment)
+        is_submission = isinstance(item.item, Submission)
+        is_comment = isinstance(item.item, Comment)
 
         if item.is_removed() or item.is_author_removed():
             item.item.mod.remove()
@@ -87,7 +89,8 @@ class ReactionHandler:
 
         if reaction.reply != "":
             reply = item.item.reply(reaction.reply)
-            if reaction.distinguish_reply: reply.mod.distinguish(sticky=reaction.sticky_reply)
+            if reaction.distinguish_reply:
+                reply.mod.distinguish(sticky=reaction.sticky_reply)
             payload.actions.append("replied to")
 
         if isinstance(reaction.ban, int):
@@ -100,10 +103,7 @@ class ReactionHandler:
                 item.item.subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
                                                duration=reaction.ban, ban_message=ban_message,
                                                note="Banhammer Ban")
-                payload.actions.append("/u/{} banned for {} day(s)".format(item.item.author.name, reaction.ban))
-
-        item.remove("files/{}_reports.txt".format(item.subreddit.subreddit.id))
-        item.remove("files/{}_queue.txt".format(item.subreddit.subreddit.id))
+                payload.actions.append(f"/u/{item.item.author.name} banned for {reaction.ban} day(s)")
 
         return payload
 
@@ -125,7 +125,8 @@ class Reaction:
 
         self.distinguish_reply = kwargs["distinguish_reply"] if "distinguish_reply" in kwargs else True
         self.sticky_reply = kwargs["sticky_reply"] if "sticky_reply" in kwargs else True
-        if self.sticky_reply: self.distinguish_reply = True
+        if self.sticky_reply:
+            self.distinguish_reply = True
 
         self.ban = kwargs["ban"] if "ban" in kwargs else None
         self.archive = kwargs["archive"] if "archive" in kwargs else False
@@ -142,14 +143,19 @@ class Reaction:
                 str += " | " + self.type
             else:
                 str += " | submissions + comments"
-            if self.flair != "": str += " | flair: " + self.flair
+            if self.flair != "":
+                str += " | flair: " + self.flair
             str += " | " + ("approve" if self.approve else "remove")
-            if self.mark_nsfw: str += " | mark NSFW"
-            if self.lock or not self.approve: str += " | lock"
+            if self.mark_nsfw:
+                str += " | mark NSFW"
+            if self.lock or not self.approve:
+                str += " | lock"
             if self.ban is not None:
-                str += " | " + ("permanent ban" if self.ban == 0 else "{} day ban".format(self.ban))
-        if self.reply != "": str += " | reply"
-        if self.min_votes: str += " | min votes: {}".format(self.min_votes)
+                str += " | " + ("permanent ban" if self.ban == 0 else f"{self.ban} day ban")
+        if self.reply != "":
+            str += " | reply"
+        if self.min_votes:
+            str += f" | min votes: {self.min_votes}"
 
         return str
 
@@ -157,7 +163,7 @@ class Reaction:
         if item is None and self.item is not None:
             item = self.item
 
-        if type(item) != reddititem.RedditItem or item is None:
+        if not isinstance(item, reddititem.RedditItem) or item is None:
             raise exceptions.NoItemGiven()
 
         if not self.eligible(item.item):

@@ -1,7 +1,6 @@
-import prawcore
+from apraw.utils import BoundedSet
 
-from . import exceptions
-from . import reaction
+from . import exceptions, reaction
 from .item import *
 
 
@@ -11,82 +10,69 @@ class Subreddit:
         self.banhammer = bh
         self.reddit = bh.reddit
 
-        self.subreddit = opts["subreddit"] if "subreddit" in opts else ""
-        if type(self.subreddit) != praw.models.Subreddit: self.subreddit = self.reddit.subreddit(str(self.subreddit))
-        if self.reddit.user.me() not in self.subreddit.moderator(): raise exceptions.NotModerator(self.reddit.user.me(),
-                                                                                                  self)
+        self.name = opts["subreddit"] if "subreddit" in opts else ""
+        self.name = self.subreddit.replace("r/", "").replace("/", "")
 
-        self.name = self.subreddit.display_name.replace("r/", "").replace("/", "")
+        self.stream_new = opts.get("stream_new", True)
+        self.stream_comments = opts.get("stream_comments", False)
+        self.stream_reports = opts.get("stream_reports", True)
+        self.stream_mail = opts.get("stream_mail", True)
+        self.stream_queue = opts.get("stream_queue", True)
+        self.stream_mod_actions = opts.get("stream_mod_actions", True)
 
-        self.stream_new = opts["stream_new"] if "stream_new" in opts else True
-        self.stream_comments = opts["stream_comments"] if "stream_comments" in opts else False
-        self.stream_reports = opts["stream_reports"] if "stream_reports" in opts else True
-        self.stream_mail = opts["stream_mail"] if "stream_mail" in opts else True
-        self.stream_queue = opts["stream_queue"] if "stream_queue" in opts else True
-        self.stream_mod_actions = opts["stream_mod_actions"] if "stream_mod_actions" in opts else True
+        self._new_ids = BoundedSet(301)
+        self._comment_ids = BoundedSet(301)
+        self._report_ids = BoundedSet(301)
+        self._mail_ids = BoundedSet(301)
+        self._queue_ids = BoundedSet(301)
+        self._mod_action_ids = BoundedSet(301)
 
-        self.custom_emotes = opts["custom_emotes"] if "custom_emotes" in opts else True
+        self._skip_new = True
+        self._skip_comments = True
+        self._skip_reports = True
+        self._skip_mail = True
+        self._skip_queue = True
+        self._skip_mod_actions = True
+
+        self.custom_emotes = opts.get("custom_emotes", True)
         self.reactions = list()
         self.load_reactions()
 
     def __str__(self):
-        return str(self.subreddit)
+        return self.name
 
     def get_status(self):
         str = "/r/" + self.name
 
-        if self.stream_new: str += " | New Posts"
-        if self.stream_comments: str += " | Comments"
-        if self.stream_reports: str += " | Reports"
-        if self.stream_mail: str += " | Mod-Mail"
-        if self.stream_queue: str += " | Mod-Queue"
+        if self.stream_new:
+            str += " | New Posts"
+        if self.stream_comments:
+            str += " | Comments"
+        if self.stream_reports:
+            str += " | Reports"
+        if self.stream_mail:
+            str += " | Mod-Mail"
+        if self.stream_queue:
+            str += " | Mod-Queue"
 
         return str
 
     def get_contact_url(self):
-        return "https://www.reddit.com/message/compose/?to=/r/" + self.subreddit.display_name
+        return "https://www.reddit.com/message/compose/?to=/r/" + self.name
 
-    def setup(self):
-        if self.subreddit.quarantine:
-            self.subreddit.quaran.opt_in()
+    async def setup(self):
+        settings = await self._subreddit.mod.settings()
+        self.stream_new = settings.spam_links != "all" and settings.spam_selfposts != "all"
+        self.stream_comments = settings.spam_comments == "all"
+        self.stream_queue = settings.spam_links == "all" or settings.spam_selfposts == "all"
 
-        settings = self.subreddit.mod.settings()
-        self.stream_new = False if settings["spam_links"] == "all" or settings["spam_selfposts"] == "all" else True
-        self.stream_comments = True if settings["spam_comments"] == "all" else False
-        self.stream_queue = True if settings["spam_links"] == "all" or settings["spam_selfposts"] == "all" else False
-
-    def get_dict(self):
-        dict = {
-            "subreddit": self.name,
-            "stream_new": self.stream_new,
-            "stream_comments": self.stream_comments,
-            "stream_reports": self.stream_reports,
-            "stream_mail": self.stream_mail,
-            "stream_queue": self.stream_queue,
-            "stream_mod_actions": self.stream_mod_actions,
-            "custom_emotes": self.custom_emotes
-        }
-
-        return dict
-
-    def get_data(self):
-        dict = self.get_dict()
-        dict["get_new"] = self.get_new
-        dict["get_comments"] = self.get_comments
-        dict["get_reports"] = self.get_reports
-        dict["get_mail"] = self.get_mail
-        dict["get_queue"] = self.get_queue
-        dict["get_mod_actions"] = self.get_mod_actions
-        return dict
-
-    def load_reactions(self):
+    async def load_reactions(self):
         if self.custom_emotes:
             try:
-                reaction_page = self.subreddit.wiki['banhammer-reactions']
+                reaction_page = await self._subreddit.wiki.page("banhammer-reactions")
                 reacts = reaction.get_reactions(reaction_page.content_md)["reactions"]
-                if len(reacts) > 0: self.reactions = reacts
-            except prawcore.exceptions.NotFound:
-                pass
+                if len(reacts) > 0:
+                    self.reactions = reacts
             except Exception as e:
                 print(type(e), e)
 
@@ -112,104 +98,90 @@ class Subreddit:
             if reaction.emoji == emoji:
                 return reaction
 
-    def ignore_old(self):
-        for p in self.get_new(True): break
-        for p in self.get_comments(True): break
-        for p in self.get_reports(True): break
-        for p in self.get_mail(True): break
-        for p in self.get_queue(True): break
-        for p in self.get_mod_actions(override=True): break
+    async def get_new(self):
+        submissions = [s async for s in self._subreddit.new()]
+        for submission in reversed(submissions):
+            if submission.id in self._new_ids:
+                continue
 
-    def get_new(self, override=False):
-        if not self.stream_new and not override:
-            return list()
-        path = "files/{}_new.txt".format(self.subreddit.id)
-        ids = list()
-        if os.path.exists(path):
-            with open(path) as f:
-                ids = f.read().splitlines()
-        for submission in self.subreddit.new():
-            if submission.id in ids:
-                break
-            item = RedditItem(submission, self, "new")
-            item.save(path)
-            yield item
+            self._new_ids.add(submission.id)
 
-    def get_comments(self, override=False):
-        if not self.stream_comments and not override:
-            return list()
-        path = "files/{}_comments.txt".format(self.subreddit.id)
-        ids = list()
-        if os.path.exists(path):
-            with open(path) as f:
-                ids = f.read().splitlines()
-        for comment in self.subreddit.comments(limit=250):
-            if comment.id in ids:
-                break
-            item = RedditItem(comment, self, "new")
-            item.save(path)
-            yield item
+            if not self._skip_new:
+                item = RedditItem(submission, self, "new")
+                yield item
 
-    def get_reports(self, override=False):
-        if not self.stream_reports and not override:
-            return list()
-        path = "files/{}_reports.txt".format(self.subreddit.id)
-        ids = list()
-        if os.path.exists(path):
-            with open(path) as f:
-                ids = f.read().splitlines()
-        for item in self.subreddit.mod.reports():
-            if item.id in ids:
-                break
-            item = RedditItem(item, self, "reports")
-            item.save(path)
-            yield item
+        self._skip_new = False
 
-    def get_mail(self, override=False):
-        if not self.stream_mail and not override:
-            return list()
-        path = "files/{}_mail.txt".format(self.subreddit.id)
-        ids = list()
-        if os.path.exists(path):
-            with open(path) as f:
-                ids = f.read().splitlines()
-        for conversation in self.subreddit.modmail.conversations():
+    async def get_comments(self):
+        comments = [s async for s in self._subreddit.comments(250)]
+        for comment in reversed(comments):
+            if comment.id in self._comment_ids:
+                continue
+
+            self._comment_ids.add(comment.id)
+
+            if not self._skip_comments:
+                item = RedditItem(comment, self, "new")
+                yield item
+
+        self._skip_comments = False
+
+    async def get_reports(self):
+        items = [s async for s in self._subreddit.mod.reports()]
+        for item in reversed(items):
+            if item.id in self._report_ids:
+                continue
+
+            self._report_ids.add(item.id)
+
+            if not self._skip_reports:
+                item = RedditItem(item, self, "reports")
+                yield item
+
+        self._skip_reports = False
+
+    async def get_mail(self):
+        conversations = [s async for s in self._subreddit.modmail.conversations()]
+        for conversation in reversed(conversations):
             for message in conversation.messages:
-                if message.id in ids:
-                    break
-                message.conversation = conversation
-                item = RedditItem(message, self, "modmail")
-                item.save(path)
+                if message.id in self._mail_ids:
+                    continue
+
+                self._mail_ids.add(message.id)
+
+                if not self._skip_mail:
+                    message = RedditItem(message, self, "modmail")
+                    yield message
+
+        self._skip_mail = False
+
+    async def get_queue(self):
+        items = [s async for s in self._subreddit.mod.modqueue()]
+        for item in reversed(items):
+            if item.id in self._queue_ids:
+                continue
+
+            self._queue_ids.add(item.id)
+
+            if not self._skip_queue:
+                item = RedditItem(item, self, "queue")
                 yield item
 
-    def get_queue(self, override=False):
-        if not self.stream_queue and not override:
-            return list()
-        path = "files/{}_queue.txt".format(self.subreddit.id)
-        ids = list()
-        if os.path.exists(path):
-            with open(path) as f:
-                ids = f.read().splitlines()
-        for item in self.subreddit.mod.modqueue():
-            if item.id in ids:
-                break
-            item = RedditItem(item, self, "queue")
-            item.save(path)
-            yield item
+        self._skip_queue = False
 
-    def get_mod_actions(self, mods=list(), override=False):
+    async def get_mod_actions(self, mods=list()):
         mods = [m.lower() for m in mods]
-        if not self.stream_mod_actions and not override:
-            return list()
-        path = "files/{}_actions.txt".format(self.subreddit.id)
-        ids = list()
-        if os.path.exists(path):
-            with open(path) as f:
-                ids = f.read().splitlines()
-        for action in self.subreddit.mod.log(limit=None):
-            if action.id in ids:
-                break
-            if str(action.mod).lower() in mods or len(mods) == 0:
-                item = RedditItem(action, self, "log")
-                item.save(path)
-                yield item
+        actions = [s async for s in self._subreddit.mod.log(limit=None)]
+        for action in reversed(actions):
+            if action.id in self._mod_action_ids:
+                continue
+            if str(action.mod).lower() not in mods or not mods:
+                continue
+
+            self._mod_action_ids.add(action.id)
+
+            if not self._skip_mod_actions:
+                action = RedditItem(action, self, "log")
+                yield action
+
+        self._skip_mod_actions = False
