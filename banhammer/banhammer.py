@@ -6,6 +6,8 @@ import re
 
 import discord
 
+import apraw
+
 from . import reddithelper
 from .messagebuilder import MessageBuilder
 from .reaction import ReactionHandler
@@ -16,8 +18,8 @@ banhammer_purple = discord.Colour(0).from_rgb(207, 206, 255)
 
 class Banhammer:
 
-    def __init__(self, reddit, loop_time=5 * 60, bot=None, embed_color=banhammer_purple,
-                 change_presence=False, message_builder=MessageBuilder(), reaction_handler=ReactionHandler()):
+    def __init__(self, reddit: apraw.Reddit, loop_time: int = 5 * 60, bot: discord.Client = None, embed_color: discord.Colour = banhammer_purple,
+                 change_presence: bool = False, message_builder: MessageBuilder = MessageBuilder(), reaction_handler: ReactionHandler = ReactionHandler()):
         self.reddit = reddit
         self.subreddits = list()
         self.loop = asyncio.get_event_loop()
@@ -33,12 +35,9 @@ class Banhammer:
         self.embed_color = embed_color
         self.change_presence = change_presence
 
-        if not os.path.exists("files"):
-            os.mkdir("files")
-
     def add_subreddits(self, *subs):
         for sub in subs:
-            if type(sub) != Subreddit:
+            if not isinstance(sub, Subreddit):
                 sub = Subreddit(self, subreddit=str(sub))
                 sub.setup()
                 sub.ignore_old()
@@ -172,7 +171,7 @@ class Banhammer:
     def get_item(self, c):
         # Add this to use the embed's URL (if one is present):
         # else c.author.url if c.author != discord.Empty and c.author.url != discord.Embed.Empty
-        s = str(c) if type(c) != discord.Embed else json.dumps(c.to_dict())
+        s = str(c) if not isinstance(c, discord.Embed) else json.dumps(c.to_dict())
         return reddithelper.get_item(self.reddit, self.subreddits, s)
 
     def get_reactions_embed(self):
@@ -180,9 +179,10 @@ class Banhammer:
             colour=self.embed_color
         )
         embed.title = "Configured reactions"
-        for sub in self.subreddits: embed.add_field(name="/r/" + str(sub),
-                                                    value="\n".join([str(r) for r in sub.reactions]),
-                                                    inline=False)
+        for sub in self.subreddits:
+            embed.add_field(name="/r/" + str(sub),
+                            value="\n".join([str(r) for r in sub.reactions]),
+                            inline=False)
         return embed
 
     def get_subreddits_embed(self):

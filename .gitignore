@@ -113,6 +113,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# IDE files
+.vscode/*
+
 # custom
 D6B.py
 discord.ini
