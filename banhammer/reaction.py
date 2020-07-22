@@ -176,13 +176,13 @@ class Reaction:
         return item.subreddit.banhammer.reaction_handler.handle(self, item, payload)
 
     def eligible(self, item):
-        if isinstance(item, praw.models.Submission):
+        if isinstance(item, Submission):
             if self.type == "" or self.type == "submission":
                 return True
-        elif isinstance(item, praw.models.Comment):
+        elif isinstance(item, Comment):
             if self.type == "" or self.type == "comment":
                 return True
-        elif type(item) in [praw.models.ModmailMessage, praw.models.ModmailConversation]:
+        elif isinstance(item, (ModmailMessage, ModmailConversation)):
             if self.type == "mail":
                 return True
         return False
@@ -206,16 +206,6 @@ def get_reactions(yml):
 
 
 def ignore_reactions(reactions, remove):
-    emojis = set()
-
-    for item in remove:
-        if isinstance(item, Reaction):
-            emojis.add(item.emoji)
-        elif isinstance(item, str):
-            emojis.add(item)
-
-    for react in reactions:
-        if react.emoji in emojis:
-            reactions.remove(react)
-
+    emojis = set(i.emoji if isinstance(item, Reaction) else i for i in remove)
+    reactions = [r for r in reactions if react.emoji not in emojis]
     return reactions
