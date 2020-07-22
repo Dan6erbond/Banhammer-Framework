@@ -31,9 +31,29 @@ class TestSubreddit:
         await subreddit.load_reactions()
 
         sub = await reddit.subreddit("banhammerdemo")
+        item = None
+
         async for s in sub.new():
             item = RedditItem(s, subreddit, "new")
             break
 
-        for r in subreddit.get_reactions(item):
-            assert isinstance(r, Reaction)
+        if item:
+            for r in subreddit.get_reactions(item):
+                assert isinstance(r, Reaction)
+
+    @pytest.mark.asyncio
+    async def test_get_reaction(self, reddit: apraw.Reddit, subreddit: Subreddit):
+        await subreddit.load_reactions()
+
+        sub = await reddit.subreddit("banhammerdemo")
+        item = None
+
+        async for s in sub.new():
+            item = RedditItem(s, subreddit, "new")
+            break
+
+        if item:
+            emojis = [r.emoji for r in subreddit.get_reactions(item)]
+            if emojis:
+                reaction = subreddit.get_reaction(item, emojis[0])
+                assert isinstance(reaction, Reaction)
