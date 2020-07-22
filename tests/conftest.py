@@ -4,6 +4,7 @@ import apraw
 import pytest
 
 import banhammer as bh
+from banhammer.models import Subreddit
 
 username = os.getenv("USERNAME")
 if username is None:
