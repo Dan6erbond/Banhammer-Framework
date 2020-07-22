@@ -1,3 +1,5 @@
+from typing import List
+
 from apraw.utils import BoundedSet
 
 from . import exceptions, reaction
@@ -11,7 +13,7 @@ class Subreddit:
         self.reddit = bh.reddit
 
         self.name = opts["subreddit"] if "subreddit" in opts else ""
-        self.name = self.subreddit.replace("r/", "").replace("/", "")
+        self.name = self.name.replace("r/", "").replace("/", "")
 
         self.stream_new = opts.get("stream_new", True)
         self.stream_comments = opts.get("stream_comments", False)
@@ -34,9 +36,10 @@ class Subreddit:
         self._skip_queue = True
         self._skip_mod_actions = True
 
+        self._subreddit = None
+
         self.custom_emotes = opts.get("custom_emotes", True)
         self.reactions = list()
-        self.load_reactions()
 
     def __str__(self):
         return self.name
@@ -60,16 +63,23 @@ class Subreddit:
     def get_contact_url(self):
         return "https://www.reddit.com/message/compose/?to=/r/" + self.name
 
+    async def get_subreddit(self):
+        if not self._subreddit:
+            self._subreddit = await self.banhammer.reddit.subreddit(self.name)
+        return self._subreddit
+
     async def setup(self):
-        settings = await self._subreddit.mod.settings()
+        subreddit = await self.get_subreddit()
+        settings = await subreddit.mod.settings()
         self.stream_new = settings.spam_links != "all" and settings.spam_selfposts != "all"
         self.stream_comments = settings.spam_comments == "all"
         self.stream_queue = settings.spam_links == "all" or settings.spam_selfposts == "all"
 
     async def load_reactions(self):
+        subreddit = await self.get_subreddit()
         if self.custom_emotes:
             try:
-                reaction_page = await self._subreddit.wiki.page("banhammer-reactions")
+                reaction_page = await subreddit.wiki.page("banhammer-reactions")
                 reacts = reaction.get_reactions(reaction_page.content_md)["reactions"]
                 if len(reacts) > 0:
                     self.reactions = reacts
@@ -82,7 +92,7 @@ class Subreddit:
                 content = f.read()
                 self.reactions = reaction.get_reactions(content)["reactions"]
                 try:
-                    self.subreddit.wiki.create("banhammer-reactions", content, reason="Reactions not found")
+                    subreddit.wiki.create("banhammer-reactions", content, reason="Reactions not found")
                 except Exception as e:
                     print(e)
 
@@ -99,7 +109,8 @@ class Subreddit:
                 return reaction
 
     async def get_new(self):
-        submissions = [s async for s in self._subreddit.new()]
+        subreddit = await self.get_subreddit()
+        submissions = [s async for s in subreddit.new()]
         for submission in reversed(submissions):
             if submission.id in self._new_ids:
                 continue
@@ -113,7 +124,8 @@ class Subreddit:
         self._skip_new = False
 
     async def get_comments(self):
-        comments = [s async for s in self._subreddit.comments(250)]
+        subreddit = await self.get_subreddit()
+        comments = [s async for s in subreddit.comments(limit=250 if not self._skip_comments else 100)]
         for comment in reversed(comments):
             if comment.id in self._comment_ids:
                 continue
@@ -127,7 +139,8 @@ class Subreddit:
         self._skip_comments = False
 
     async def get_reports(self):
-        items = [s async for s in self._subreddit.mod.reports()]
+        subreddit = await self.get_subreddit()
+        items = [s async for s in subreddit.mod.reports()]
         for item in reversed(items):
             if item.id in self._report_ids:
                 continue
@@ -141,9 +154,10 @@ class Subreddit:
         self._skip_reports = False
 
     async def get_mail(self):
-        conversations = [s async for s in self._subreddit.modmail.conversations()]
+        subreddit = await self.get_subreddit()
+        conversations = [s async for s in subreddit.modmail.conversations()]
         for conversation in reversed(conversations):
-            for message in conversation.messages:
+            async for message in conversation.messages():
                 if message.id in self._mail_ids:
                     continue
 
@@ -156,7 +170,8 @@ class Subreddit:
         self._skip_mail = False
 
     async def get_queue(self):
-        items = [s async for s in self._subreddit.mod.modqueue()]
+        subreddit = await self.get_subreddit()
+        items = [s async for s in subreddit.mod.modqueue()]
         for item in reversed(items):
             if item.id in self._queue_ids:
                 continue
@@ -169,13 +184,16 @@ class Subreddit:
 
         self._skip_queue = False
 
-    async def get_mod_actions(self, mods=list()):
+    async def get_mod_actions(self, mods: List[str] = list()):
+        subreddit = await self.get_subreddit()
         mods = [m.lower() for m in mods]
-        actions = [s async for s in self._subreddit.mod.log(limit=None)]
+        actions = [s async for s in subreddit.mod.log(limit=None if not self._skip_mod_actions else 100)]
         for action in reversed(actions):
+            if not action:
+                continue
             if action.id in self._mod_action_ids:
                 continue
-            if str(action.mod).lower() not in mods or not mods:
+            if action._data["mod"].lower() not in mods and mods:
                 continue
 
             self._mod_action_ids.add(action.id)
