@@ -56,4 +56,4 @@ class TestSubreddit:
             emojis = [r.emoji for r in subreddit.get_reactions(item)]
             if emojis:
                 reaction = subreddit.get_reaction(item, emojis[0])
-                assert isinstance(reaction, Reaction)
+                assert reaction == subreddit.get_reactions(item)[0]
