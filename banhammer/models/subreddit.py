@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from apraw.utils import BoundedSet
@@ -65,7 +66,7 @@ class Subreddit:
 
     async def get_subreddit(self):
         if not self._subreddit:
-            self._subreddit = await self.banhammer.reddit.subreddit(self.name)
+            self._subreddit = await self.reddit.subreddit(self.name)
         return self._subreddit
 
     async def setup(self):
@@ -86,7 +87,7 @@ class Subreddit:
             except Exception as e:
                 print(type(e), e)
 
-        if not len(self.reactions) > 0:
+        if not self.reactions:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             with open(dir_path + "/reactions.yaml", encoding="utf8") as f:
                 content = f.read()
@@ -97,11 +98,7 @@ class Subreddit:
                     print(e)
 
     def get_reactions(self, item):
-        _r = list()
-        for reaction in self.reactions:
-            if reaction.eligible(item):
-                _r.append(reaction)
-        return _r
+        return [r for r in self.reactions if r.eligible(item)]
 
     def get_reaction(self, emoji, item):
         for reaction in self.get_reactions(item):
