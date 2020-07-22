@@ -1,6 +1,9 @@
 import os
 
+import apraw
 import pytest
+
+import banhammer as bh
 
 username = os.getenv("USERNAME")
 if username is None:
@@ -21,8 +24,18 @@ if client_secret is None:
 
 @pytest.fixture
 def reddit():
-    import apraw
-
     reddit = apraw.Reddit(client_id=client_id, client_secret=client_secret,
                           password=password, username=username)
     return reddit
+
+
+@pytest.fixture
+def banhammer(reddit):
+    b = bh.Banhammer(reddit)
+    return b
+
+
+@pytest.fixture
+def subreddit(banhammer):
+    sub = Subreddit(banhammer, subreddit="banhammerdemo")
+    return sub
