@@ -16,6 +16,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Dan6erbond/Banhammer.py",
     packages=setuptools.find_packages(include=['banhammer', 'banhammer.*']),
+    package_data={'banhammer': ['welcome.txt', 'reactions.yaml']},
+    include_package_data=True,
     install_requires=[
         'discord.py>=1.1.1',
         'praw>=6.2.0',
