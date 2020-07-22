@@ -19,8 +19,8 @@ class RedditItem:
     def __str__(self):
         return self.subreddit.banhammer.message_builder.get_item_message(self)
 
-    def get_embed(self, embed_color: discord.Color = None):
-        return self.subreddit.banhammer.message_builder.get_item_embed(self, embed_color)
+    async def get_embed(self, embed_color: discord.Color = None):
+        return await self.subreddit.banhammer.message_builder.get_item_embed(self, embed_color)
 
     def is_removed(self):
         removed = self.item is None
@@ -74,16 +74,16 @@ class RedditItem:
 
 def get_item_url(item):
     if isinstance(item, Submission):
-        return f"https://www.reddit.com/r/{item.subreddit}/comments/{item}"
+        return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item.id}"
     elif isinstance(item, Comment):
-        return f"https://www.reddit.com/r/{item.subreddit}/comments/{item.submission}/_/{item}"
+        return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item._data['submission']}/_/{item.id}"
     elif isinstance(item, ModmailConversation):
         return "https://mod.reddit.com/mail/all/" + item.id
     elif isinstance(item, ModmailMessage):
         return "https://mod.reddit.com/mail/all/" + item.conversation.id
     elif isinstance(item, Message):
         if item.was_comment:
-            return f"https://www.reddit.com/r/{item.subreddit}/comments/{item.submission}/_/{item}"
+            return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item._data['submission']}/_/{item.id}"
         else:
             return "https://www.reddit.com/message/messages/{}" + str(item)
     elif isinstance(item, Subreddit):
