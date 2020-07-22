@@ -34,12 +34,11 @@ class Banhammer:
         self.embed_color = embed_color
         self.change_presence = change_presence
 
-    def add_subreddits(self, *subs):
+    async def add_subreddits(self, *subs):
         for sub in subs:
             if not isinstance(sub, Subreddit):
                 sub = Subreddit(self, subreddit=str(sub))
-                sub.setup()
-                sub.ignore_old()
+                await sub.load_reactions()
             self.subreddits.append(sub)
 
     def remove_subreddit(self, subreddit):
