@@ -205,7 +205,7 @@ class Banhammer:
 
     def run(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        with open(dir_path + "/welcome.txt") as f:
+        with open(dir_path + "/WELCOME.md") as f:
             print("")
             BOLD = '\033[1m'
             END = '\033[0m'

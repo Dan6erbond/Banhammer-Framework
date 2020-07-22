@@ -1,0 +1,6 @@
+Thank you for using **Banhammer.py**!
+
+For news and updates on the framework make sure to check out the **Banhammer Discord server**:
+https://discord.gg/9JrGC8f
+
+**Banhammer.py** is a free framework and we would really appreciate it if you supported our work by leaving a little star on the Git repository or mentioning us on the subreddit you moderate!
