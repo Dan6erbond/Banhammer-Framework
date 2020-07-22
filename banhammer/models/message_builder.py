@@ -1,6 +1,6 @@
 import discord
 
-from .const import BOT_DISCLAIMER
+from ..const import BOT_DISCLAIMER
 from .item import RedditItem
 
 

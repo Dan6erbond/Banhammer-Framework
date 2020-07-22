@@ -2,8 +2,8 @@ from typing import List
 
 from apraw.utils import BoundedSet
 
-from . import exceptions, reaction
-from .item import *
+from . import reaction
+from .item import RedditItem
 
 
 class Subreddit:

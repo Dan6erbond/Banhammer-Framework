@@ -1,9 +1,9 @@
 from apraw.models import (Comment, ModmailConversation, ModmailMessage,
                           Submission)
 
-from . import exceptions
-from . import item as reddititem
-from . import yaml
+from ..exceptions import NoItemGiven, NotEligibleItem
+from ..utils import yaml
+from .item import RedditItem
 
 
 class ReactionPayload:
@@ -163,11 +163,11 @@ class Reaction:
         if item is None and self.item is not None:
             item = self.item
 
-        if not isinstance(item, reddititem.RedditItem) or item is None:
-            raise exceptions.NoItemGiven()
+        if not isinstance(item, RedditItem) or item is None:
+            raise NoItemGiven()
 
         if not self.eligible(item.item):
-            raise exceptions.NotEligibleItem()
+            raise NotEligibleItem()
 
         user = payload.user if user == "" else user
 

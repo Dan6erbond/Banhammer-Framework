@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 import apraw
 
-from .item import RedditItem
+from ..models import RedditItem
 
 URL_PATTERN = re.compile(r"((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\.com|\.it){1}([a-zA-Z0-9\/_]+))")
 

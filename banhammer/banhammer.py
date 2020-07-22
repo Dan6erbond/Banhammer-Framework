@@ -7,10 +7,8 @@ import apraw
 import discord
 from apraw.utils import ExponentialCounter
 
-from . import reddit_helper
-from .message_builder import MessageBuilder
-from .reaction import ReactionHandler
-from .subreddit import Subreddit
+from .models import MessageBuilder, ReactionHandler, Subreddit
+from .utils import reddit_helper
 
 banhammer_purple = discord.Colour(0).from_rgb(207, 206, 255)
 
