@@ -1,14 +1,14 @@
 import apraw
 import pytest
 
-from banhammer.models import Reaction, Subreddit
+from banhammer.models import Reaction, RedditItem, Subreddit
 
 
 class TestSubreddit:
     @pytest.mark.asyncio
     async def test_load_reactions(self, subreddit: Subreddit):
         await subreddit.load_reactions()
-        for r in sub.reactions:
+        for r in subreddit.reactions:
             assert isinstance(r, Reaction)
 
     @pytest.mark.asyncio
@@ -25,3 +25,15 @@ class TestSubreddit:
     async def test_setup(self, subreddit: Subreddit):
         await subreddit.setup()
         assert isinstance(subreddit.get_status(), str)
+
+    @pytest.mark.asyncio
+    async def test_get_reactions(self, reddit: apraw.Reddit, subreddit: Subreddit):
+        await subreddit.load_reactions()
+
+        sub = await reddit.subreddit("banhammerdemo")
+        async for s in sub.new():
+            item = RedditItem(s, subreddit, "new")
+            break
+
+        for r in subreddit.get_reactions(item):
+            assert isinstance(r, Reaction)
