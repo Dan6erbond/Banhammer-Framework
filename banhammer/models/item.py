@@ -70,7 +70,8 @@ class RedditItem:
         r.item = self
         return r
 
-    def get_url(self):
+    @property
+    def url(self):
         return get_item_url(self.item)
 
 

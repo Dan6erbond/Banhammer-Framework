@@ -32,7 +32,7 @@ class MessageBuilder:
         else:
             title = f"New action taken by /u/{item.item.mod} on /r/{item.item.subreddit}!"
 
-        url = item.get_url()
+        url = item.url
         embed.set_author(name=title, url=url if url else discord.Embed.Empty)
 
         if item.type == "submission":
@@ -58,5 +58,5 @@ class MessageBuilder:
     def get_ban_message(self, item, ban_duration):
         ban_type = "permanent" if not ban_duration else "temporary"
         disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
-        return f"Our moderator team has reviewed [this post]({item.get_url()}) and decided to give you a {ban_type} ban. " \
+        return f"Our moderator team has reviewed [this post]({item.url}) and decided to give you a {ban_type} ban. " \
                f"If you wish to appeal this ban, please respond to this message.\n\n{disclaimer}"

@@ -27,7 +27,7 @@ class ReactionPayload:
             self.actions.append("dismissed")
         return f"**{self.item.type.title()} {' and '.join(self.actions)} by {self.user}!**\n\n" \
                f"{self.item.type.title()} by /u/{await self.item.get_author_name()}:\n\n" \
-               f"{self.item.get_url()}"
+               f"{self.item.url}"
 
 
 class ReactionHandler:
