@@ -11,7 +11,7 @@ class CustomPayload(banhammer.ReactionPayload):
 
 
 class CustomHandler(banhammer.ReactionHandler):
-    def handle(self, reaction, item, payload):
+    async def handle(self, reaction, item, payload):
         payload.actions.append("test action")
         return payload
 
@@ -50,9 +50,11 @@ def run():
     print("Item author removed:", item.is_author_removed())
     print()
 
-    payload = item.get_reaction("✔").handle()
+    reaction = await item.get_reaction("✔")
+    payload = await reaction.handle()
     print(payload)
-    payload = item.get_reaction("✔").handle(CustomPayload("Ravi"))
+    reaction = await item.get_reaction("✔")
+    payload = await reaction.handle(CustomPayload("Ravi"))
     print(payload)
 
 

@@ -51,10 +51,7 @@ class RedditItem:
             return author.name
 
     def get_reactions(self):
-        reactions = self.subreddit.get_reactions(self.item)
-        for r in reactions:
-            r.item = self
-        return reactions
+        return self.subreddit.get_reactions(self.item)
 
     async def add_reactions(self, message):
         for r in self.get_reactions():
@@ -65,9 +62,7 @@ class RedditItem:
                 continue
 
     def get_reaction(self, emoji):
-        r = self.subreddit.get_reaction(emoji, self.item)
-        r.item = self
-        return r
+        return self.subreddit.get_reaction(emoji, self.item)
 
     @property
     def url(self):

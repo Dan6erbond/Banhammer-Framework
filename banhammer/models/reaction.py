@@ -106,27 +106,22 @@ class Reaction:
     def __init__(self, **kwargs):
         self.config = kwargs
 
-        self.emoji = kwargs["emoji"] if "emoji" in kwargs else ""
-        self.emoji = self.emoji.strip()
+        self.emoji = kwargs.get("emoji", "").strip()
 
-        self.type = kwargs["type"] if "type" in kwargs else ""
-        self.flair = kwargs["flair"] if "flair" in kwargs else ""
-        self.approve = kwargs["approve"] if "approve" in kwargs else False
-        self.mark_nsfw = kwargs["mark_nsfw"] if "mark_nsfw" in kwargs else False
-        self.lock = kwargs["lock"] if "lock" in kwargs else False
-        self.reply = kwargs["reply"] if "reply" in kwargs else ""
+        self.type = kwargs.get("type", "")
+        self.flair = kwargs.get("flair", "")
+        self.approve = kwargs.get("approve", False)
+        self.mark_nsfw = kwargs.get("mark_nsfw", False)
+        self.lock = kwargs.get("lock", False)
+        self.reply = kwargs.get("reply", "")
 
-        self.distinguish_reply = kwargs["distinguish_reply"] if "distinguish_reply" in kwargs else True
-        self.sticky_reply = kwargs["sticky_reply"] if "sticky_reply" in kwargs else True
-        if self.sticky_reply:
-            self.distinguish_reply = True
+        self.sticky_reply = kwargs.get("sticky_reply", True)
+        self.distinguish_reply = kwargs.get("distinguish_reply", True) or self.sticky_reply
 
-        self.ban = kwargs["ban"] if "ban" in kwargs else None
-        self.archive = kwargs["archive"] if "archive" in kwargs else False
-        self.mute = kwargs["mute"] if "mute" in kwargs else False
-        self.min_votes = kwargs["min_votes"] if "min_votes" in kwargs else 1
-
-        self.item = None
+        self.ban = kwargs.get("ban", None)
+        self.archive = kwargs.get("archive", False)
+        self.mute = kwargs.get("mute", False)
+        self.min_votes = kwargs.get("min_votes", 1)
 
     def __str__(self):
         str = self.emoji
@@ -152,21 +147,13 @@ class Reaction:
 
         return str
 
-    def handle(self, payload=ReactionPayload(), user="", item=None):
-        if item is None and self.item is not None:
-            item = self.item
-
-        if not isinstance(item, RedditItem) or item is None:
-            raise NoItemGiven()
-
+    async def handle(self, item, payload=ReactionPayload(), user=""):
         if not self.eligible(item.item):
             raise NotEligibleItem()
 
-        user = payload.user if user == "" else user
+        payload.feed(item, self.approve, user or payload.user, self.emoji, self.reply)
 
-        payload.feed(item, self.approve, user, self.emoji, self.reply)
-
-        return item.subreddit.banhammer.reaction_handler.handle(self, item, payload)
+        return await item.subreddit.banhammer.reaction_handler.handle(self, item, payload)
 
     def eligible(self, item):
         if isinstance(item, Submission):
