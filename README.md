@@ -14,7 +14,7 @@ By [Mariavi](https://dan6erbond.github.io/mariavi)
 ### Installation
 Currently the PyPi release of Banhammer.py has not been tested which is why we recommend cloning the repository to your local machine after which you can `cd` into the directory with the files to install the requirements which are notated in the [requirements.txt](requirements.txt) file:
  - `pip install -r requirements.txt`
- 
+
 ### Quick Example
 Once the dependencies have been installed, the bot can be created. For that the general structure of a Discord `Client` or `Bot` (if commands are of importance use `Bot`) needs to be created and then Banhammer initialized as well as ran.
 
@@ -34,15 +34,15 @@ bh.add_subreddits(subreddit.Subreddit(bh, SUBNAME))
 @bot.event
 async def on_command_error(ctx, error):
     print(error)
-    
+
 @bot.event
 async def on_ready():
     print(str(bot.user) + ' is running.')
     bh.run()
-    
+
 @bh.new()
 async def handle_new(p):
-    msg = await bot.get_channel(CHANNEL_ID).send(embed=p.get_embed())
+    msg = await bot.get_channel(CHANNEL_ID).send(embed=await p.get_embed())
     await p.add_reactions(m)
 
 bot.run(TOKEN)
@@ -79,7 +79,7 @@ Banhammer.py is open-source! That means we'd love to see your contributions and 
  - [Discord.py](https://discordpy.readthedocs.io/en/latest)
  - [PRAW](https://praw.readthedocs.io/en/latest)
  - [Mariavi](https://dan6erbond.github.io/mariavi)
- 
+
 ### Contributors
 The awesome people that worked on this framework and its idea to make it a reality!
  - [Dan6erbond](https://dan6erbond.github.io) (Dan6erbond#2259)

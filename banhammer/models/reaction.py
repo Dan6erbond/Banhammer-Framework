@@ -16,30 +16,23 @@ class ReactionPayload:
         self.reply = ""
         self.emoji = ""
 
-    def __str__(self):
-        return self.get_message()
-
     def feed(self, item, approved, user="", emoji="", reply=""):
         self.item = item
         self.approved = approved
-        if user != "":
-            self.user = user
+        self.user = user or self.user
         self.reply = reply
 
-    def get_message(self):
+    async def get_message(self):
         if len(self.actions) == 0:
             self.actions.append("dismissed")
         return f"**{self.item.type.title()} {' and '.join(self.actions)} by {self.user}!**\n\n" \
-               f"{self.item.type.title()} by /u/{self.item.get_author_name()}:\n\n" \
+               f"{self.item.type.title()} by /u/{await self.item.get_author_name()}:\n\n" \
                f"{self.item.get_url()}"
 
 
 class ReactionHandler:
 
-    def handle(self, reaction, item, payload):
-        return self.gen_handle(reaction, item, payload)
-
-    def gen_handle(self, reaction, item, payload):
+    async def handle(self, reaction, item, payload):
         if isinstance(item.item, (ModmailConversation, ModmailMessage)):
             conversation = item.item.conversation if isinstance(item, ModmailMessage) else item.item
             if reaction.archive:
@@ -56,7 +49,7 @@ class ReactionHandler:
         is_submission = isinstance(item.item, Submission)
         is_comment = isinstance(item.item, Comment)
 
-        if item.is_removed() or item.is_author_removed():
+        if item.removed or item.is_author_removed():
             item.item.mod.remove()
             payload.actions.append("removed")
             item.item.mod.lock()

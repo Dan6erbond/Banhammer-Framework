@@ -11,7 +11,7 @@ URL_PATTERN = re.compile(r"((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\
 async def get_item(reddit: apraw.Reddit, subreddits, str):
     for u in URL_PATTERN.findall(str):
         if is_url(u[0]):
-            item = get_item_from_url(reddit, subreddits, u[0])
+            item = await get_item_from_url(reddit, subreddits, u[0])
             if item:
                 return item
             else:
@@ -36,17 +36,17 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
     item = None
     try:
         item = await reddit.comment(url=url)
-    except Exception:
+    except Exception as e:
+        print("1 Invalid URL:", e, type(e))
         try:
+            print("Trying...")
             item = await reddit.submission(url=url)
+            print(item)
         except Exception as e:
-            print("Invalid URL:", e)
+            print("2 Invalid URL:", e, type(e))
             return None
 
-    try:
-        if not hasattr(item, "subreddit"):  # truly verify if it's a reddit comment or submission
-            return None
-    except Exception:
+    if not hasattr(item, "id"):
         return None
 
     subreddit = None

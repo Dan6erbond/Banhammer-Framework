@@ -15,39 +15,41 @@ class RedditItem:
             ModmailMessage, ModmailConversation] else "mod action"
         self.subreddit = subreddit
         self.source = source
+        self._author = None
 
-    def __str__(self):
-        return self.subreddit.banhammer.message_builder.get_item_message(self)
+    async def get_message(self):
+        return await self.subreddit.banhammer.message_builder.get_item_message(self)
 
     async def get_embed(self, embed_color: discord.Color = None):
         return await self.subreddit.banhammer.message_builder.get_item_embed(self, embed_color)
 
-    def is_removed(self):
-        removed = self.item is None
-        try:
-            id = self.item.id
-        except Exception:
-            removed = True
-        return removed
+    @property
+    def removed(self):
+        return not self.item or not hasattr(self.item, "id")
 
-    def get_author(self):
-        return self.item.author if not isinstance(
-            self.item, ModmailConversation) else self.item.authors[0]
+    async def get_author(self):
+        if not self._author:
+            if not isinstance(self.item, ModmailConversation):
+                self._author = await self.item.author()
+            else:
+                self._author = self.item.authors[0]
+        return self._author
 
-    def is_author_removed(self):
-        author = self.get_author()
-        author_removed = author is None
-        try:
-            name = author.name
-        except Exception:
-            author_removed = True
+    async def is_author_removed(self):
+        author = await self.get_author()
+        author_removed = author is not None
+        if not isinstance(author, dict):
+            author_removed = not hasattr(author, "name")
+        else:
+            author_removed = author.get("isDeleted", False)
         return author_removed
 
-    def get_author_name(self):
-        if self.is_author_removed():
+    async def get_author_name(self):
+        author = await self.get_author()
+        if await self.is_author_removed():
             return "[deleted]"
         else:
-            return self.get_author().name
+            return author.name
 
     def get_reactions(self):
         reactions = self.subreddit.get_reactions(self.item)
