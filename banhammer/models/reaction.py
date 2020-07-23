@@ -37,66 +37,67 @@ class ReactionHandler:
         if isinstance(item.item, (ModmailConversation, ModmailMessage)):
             conversation = item.item.conversation if isinstance(item, ModmailMessage) else item.item
             if reaction.archive:
-                conversation.archive()
+                await conversation.archive()
                 payload.actions.append("archived")
             if reaction.mute:
-                conversation.mute()
+                await conversation.mute()
                 payload.actions.append("muted")
             if reaction.reply != "":
-                conversation.reply(reaction.reply)
+                await conversation.reply(reaction.reply)
                 payload.actions.append("replied to")
             return payload
 
-        is_submission = isinstance(item.item, Submission)
-        is_comment = isinstance(item.item, Comment)
-
         if item.is_author_removed():
-            item.item.mod.remove()
+            await item.item.mod.remove()
             payload.actions.append("removed")
-            item.item.mod.lock()
+            await item.item.mod.lock()
             payload.actions.append("locked")
 
             payload.feed(item, False, "Banhammer")
             return payload
 
         if reaction.approve:
-            item.item.mod.approve()
+            await item.item.mod.approve()
             payload.actions.append("approved")
         else:
-            item.item.mod.remove()
+            await item.item.mod.remove()
             payload.actions.append("removed")
 
         if reaction.lock or not reaction.approve:
-            item.item.mod.lock()
+            await item.item.mod.lock()
             payload.actions.append("locked")
         else:
-            item.item.mod.unlock()
+            if item.item.locked:
+                await item.item.mod.unlock()
+                payload.actions.append("unlocked")
 
-        if is_submission:
-            if reaction.flair != "":
-                item.item.mod.flair(text=reaction.flair)
+        if isinstance(item.item, Submission):
+            if reaction.flair:
+                await item.item.mod.flair(text=reaction.flair)
                 payload.actions.append("flaired")
 
             if reaction.mark_nsfw:
-                item.item.mod.nsfw()
+                await item.item.mod.nsfw()
                 payload.actions.append("marked NSFW")
 
-        if reaction.reply != "":
-            reply = item.item.reply(reaction.reply)
+        if reaction.reply:
+            reply = await item.item.reply(reaction.reply)
             if reaction.distinguish_reply:
-                reply.mod.distinguish(sticky=reaction.sticky_reply)
+                await reply.mod.distinguish(sticky=reaction.sticky_reply)
             payload.actions.append("replied to")
 
         if isinstance(reaction.ban, int):
             ban_message = item.subreddit.banhammer.message_builder.get_ban_message(item, reaction.ban)
             if reaction.ban == 0:
-                item.item.subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
-                                               ban_message=ban_message, note="Banhammer Ban")
+                subreddit = await item.item.subreddit()
+                await subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
+                                           ban_message=ban_message, note="Banhammer Ban")
                 payload.actions.append("/u/" + item.item.author.name + " permanently banned")
             else:
-                item.item.subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
-                                               duration=reaction.ban, ban_message=ban_message,
-                                               note="Banhammer Ban")
+                subreddit = await item.item.subreddit()
+                await subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
+                                           duration=reaction.ban, ban_message=ban_message,
+                                           note="Banhammer Ban")
                 payload.actions.append(f"/u/{item.item.author.name} banned for {reaction.ban} day(s)")
 
         return payload
@@ -128,11 +129,11 @@ class Reaction:
         str = self.emoji
 
         if self.type in ["submission", "comment", ""]:
-            if self.type != "":
+            if self.type:
                 str += " | " + self.type
             else:
                 str += " | submissions + comments"
-            if self.flair != "":
+            if self.flair:
                 str += " | flair: " + self.flair
             str += " | " + ("approve" if self.approve else "remove")
             if self.mark_nsfw:
@@ -141,7 +142,7 @@ class Reaction:
                 str += " | lock"
             if self.ban is not None:
                 str += " | " + ("permanent ban" if self.ban == 0 else f"{self.ban} day ban")
-        if self.reply != "":
+        if self.reply:
             str += " | reply"
         if self.min_votes:
             str += f" | min votes: {self.min_votes}"
