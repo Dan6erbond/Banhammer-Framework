@@ -32,44 +32,6 @@ class TestRedditItem:
             assert isinstance(await item.get_embed(), discord.Embed)
 
     @pytest.mark.asyncio
-    async def test_removed(self, reddit: apraw.Reddit, subreddit: Subreddit, banhammer: Banhammer):
-        sub = await reddit.subreddit("banhammerdemo")
-        item = None
-
-        async for s in sub.new():
-            item = RedditItem(s, subreddit, "new")
-            break
-
-        if item:
-            assert isinstance(await item.get_embed(), discord.Embed)
-
-        assert not item.removed
-
-        url = "https://www.reddit.com/r/banhammerdemo/comments/c66rdl"
-        item = await banhammer.get_item(url)
-        if item:
-            assert item.removed
-
-    @pytest.mark.asyncio
-    async def test_removed(self, reddit: apraw.Reddit, subreddit: Subreddit, banhammer: Banhammer):
-        sub = await reddit.subreddit("banhammerdemo")
-        item = None
-
-        async for s in sub.new():
-            item = RedditItem(s, subreddit, "new")
-            break
-
-        if item:
-            assert isinstance(await item.get_embed(), discord.Embed)
-
-        assert not item.removed
-
-        url = "https://www.reddit.com/r/banhammerdemo/comments/hvneei"
-        item = await banhammer.get_item(url)
-        if item:
-            assert await item.is_author_removed()
-
-    @pytest.mark.asyncio
     async def test_get_author(self, reddit: apraw.Reddit, subreddit: Subreddit):
         sub = await reddit.subreddit("banhammerdemo")
         item = None
@@ -85,7 +47,7 @@ class TestRedditItem:
             assert a.name.lower() == author.name.lower()
 
     @pytest.mark.asyncio
-    async def test_is_author_removed(self, reddit: apraw.Reddit, subreddit: Subreddit):
+    async def test_is_author_removed(self, reddit: apraw.Reddit, subreddit: Subreddit, banhammer: Banhammer):
         sub = await reddit.subreddit("banhammerdemo")
         item = None
 
@@ -95,6 +57,12 @@ class TestRedditItem:
 
         if item:
             assert not await item.is_author_removed()
+
+        url = "https://www.reddit.com/r/banhammerdemo/comments/c66rdl"
+        item = await banhammer.get_item(url)
+
+        if item:
+            assert await item.is_author_removed()
 
     @pytest.mark.asyncio
     async def test_get_author_name(self, reddit: apraw.Reddit, subreddit: Subreddit):
