@@ -20,6 +20,7 @@ class ReactionPayload:
         self.item = item
         self.approved = approved
         self.user = user or self.user
+        self.emoji = emoji
         self.reply = reply
 
     async def get_message(self):
