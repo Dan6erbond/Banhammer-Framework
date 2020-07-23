@@ -49,7 +49,7 @@ class ReactionHandler:
         is_submission = isinstance(item.item, Submission)
         is_comment = isinstance(item.item, Comment)
 
-        if item.removed or item.is_author_removed():
+        if item.is_author_removed():
             item.item.mod.remove()
             payload.actions.append("removed")
             item.item.mod.lock()

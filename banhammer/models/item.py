@@ -23,24 +23,23 @@ class RedditItem:
     async def get_embed(self, embed_color: discord.Color = None):
         return await self.subreddit.banhammer.message_builder.get_item_embed(self, embed_color)
 
-    @property
-    def removed(self):
-        return not self.item or not hasattr(self.item, "id")
-
     async def get_author(self):
         if not self._author:
             if not isinstance(self.item, ModmailConversation):
-                self._author = await self.item.author()
+                try:
+                    self._author = await self.item.author()
+                except Exception as e:
+                    pass
             else:
                 self._author = self.item.authors[0]
         return self._author
 
     async def is_author_removed(self):
         author = await self.get_author()
-        author_removed = author is not None
-        if not isinstance(author, dict):
+        author_removed = not author
+        if author and not isinstance(author, dict):
             author_removed = not hasattr(author, "name")
-        else:
+        elif author:
             author_removed = author.get("isDeleted", False)
         return author_removed
 
