@@ -6,7 +6,7 @@ import banhammer
 
 
 class CustomPayload(banhammer.ReactionPayload):
-    def get_message(self):
+    async def get_message(self):
         return "I handled the submission '{0.title}' from /r/{0.subreddit}.".format(self.item.item)
 
 
@@ -46,7 +46,7 @@ def run():
     print(item)
     # print(json.dumps(item.get_embed().to_dict(), indent=4))
     print()
-    print("Item removed:", item.is_removed())
+    print("Item removed:", item.removed)
     print("Item author removed:", item.is_author_removed())
     print()
 
