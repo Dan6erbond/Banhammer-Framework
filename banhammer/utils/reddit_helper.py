@@ -29,7 +29,7 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
                 if hasattr(modmail, "subject"):
                     return RedditItem(modmail, subreddit, "url")
             except Exception as e:
-                print("{}: {}".format(type(e), e))
+                pass
 
         return None
 
@@ -37,25 +37,21 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
     try:
         item = await reddit.comment(url=url)
     except Exception as e:
-        print("1 Invalid URL:", e, type(e))
         try:
-            print("Trying...")
             item = await reddit.submission(url=url)
-            print(item)
         except Exception as e:
-            print("2 Invalid URL:", e, type(e))
             return None
 
-    if not hasattr(item, "id"):
-        return None
+    item_subreddit = await item.subreddit()
 
     subreddit = None
     for sub in subreddits:
-        if sub.subreddit.id == item.subreddit.id:
+        if sub.subreddit.id == item_subreddit.id:
             subreddit = sub
             break
 
-    return RedditItem(item, subreddit, "url")
+    if subreddit:
+        return RedditItem(item, subreddit, "url")
 
 
 def is_url(url):
