@@ -46,7 +46,8 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
 
     subreddit = None
     for sub in subreddits:
-        if sub.subreddit.id == item_subreddit.id:
+        s = await sub.get_subreddit()
+        if s.id == item_subreddit.id:
             subreddit = sub
             break
 

@@ -47,7 +47,7 @@ class ReactionHandler:
                 payload.actions.append("replied to")
             return payload
 
-        if item.is_author_removed():
+        if await item.is_author_removed():
             await item.item.mod.remove()
             payload.actions.append("removed")
             await item.item.mod.lock()
