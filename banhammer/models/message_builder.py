@@ -7,11 +7,11 @@ from .item import RedditItem
 class MessageBuilder:
     async def get_item_message(self, item: RedditItem):
         if item.type in ["submission", "comment"]:
-            return f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.item.get_author_name()}!\n\n" + \
+            return f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!\n\n" + \
                 f"https://www.reddit.com{item.item.permalink}\n\n" + \
                 f"**Title:** {item.item.title}\n**Body:**\n{item.item.selftext}"
         elif item.type == "modmail":
-            return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.item.get_author_name()}!" + \
+            return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.get_author_name()}!" + \
                 f"\n\n{item.item.body_markdown}"
         else:
             return f"New action taken by /u/{item.item._data['mod']} on /r/{item.item.subreddit}: `{item.item.action}`"
@@ -24,11 +24,11 @@ class MessageBuilder:
         title = ""
         if item.type in ["submission", "comment"]:
             if item.source == "reports":
-                title = f"{item.type.title()} reported on /r/{item.item._data['subreddit']} by /u/{await item.item.get_author_name()}!"
+                title = f"{item.type.title()} reported on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!"
             else:
-                title = f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.item.get_author_name()}!"
+                title = f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!"
         elif item.type == "modmail":
-            title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.item.get_author_name()}!"
+            title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.get_author_name()}!"
         else:
             title = f"New action taken by /u/{item.item._data['mod']} on /r/{item.item._data['subreddit']}!"
 
