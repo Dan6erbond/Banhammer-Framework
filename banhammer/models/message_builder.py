@@ -7,14 +7,14 @@ from .item import RedditItem
 class MessageBuilder:
     async def get_item_message(self, item: RedditItem):
         if item.type in ["submission", "comment"]:
-            return f"New {item.type} on /r/{item.item.subreddit} by /u/{item.item.author}!\n\n" + \
+            return f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{item.item._data['author']}!\n\n" + \
                 f"https://www.reddit.com{item.item.permalink}\n\n" + \
                 f"**Title:** {item.item.title}\n**Body:**\n{item.item.selftext}"
         elif item.type == "modmail":
-            return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation.owner} by /u/{item.item.author}!" + \
+            return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{item.item._data['author']}!" + \
                 f"\n\n{item.item.body_markdown}"
         else:
-            return f"New action taken by /u/{item.item.mod} on /r/{item.item.subreddit}: `{item.item.action}`"
+            return f"New action taken by /u/{item.item._data['mod']} on /r/{item.item.subreddit}: `{item.item.action}`"
 
     async def get_item_embed(self, item: RedditItem, embed_color: discord.Color = None):
         embed = discord.Embed(
@@ -24,13 +24,13 @@ class MessageBuilder:
         title = ""
         if item.type in ["submission", "comment"]:
             if item.source == "reports":
-                title = f"{item.type.title()} reported on /r/{item.item.subreddit} by /u/{item.item.author}!"
+                title = f"{item.type.title()} reported on /r/{item.item._data['subreddit']} by /u/{item.item._data['author']}!"
             else:
-                title = f"New {item.type} on /r/{item.item.subreddit} by /u/{item.item.author}!"
+                title = f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{item.item._data['author']}!"
         elif item.type == "modmail":
-            title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation.owner} by /u/{item.item.author}!"
+            title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{item.item._data['author']}!"
         else:
-            title = f"New action taken by /u/{item.item.mod} on /r/{item.item.subreddit}!"
+            title = f"New action taken by /u/{item.item._data['mod']} on /r/{item.item._data['subreddit']}!"
 
         url = item.url
         embed.set_author(name=title, url=url if url else discord.Embed.Empty)
@@ -51,7 +51,7 @@ class MessageBuilder:
         elif item.type == "modmail":
             embed.description = item.item.body_markdown
         elif item.type == "mod action":
-            embed.description = "Action: `{}`".format(item.item.action)
+            embed.description = f"Action: `{item.item.action}`"
 
         return embed
 
