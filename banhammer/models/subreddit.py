@@ -40,7 +40,11 @@ class Subreddit:
         self._subreddit = None
 
         self.custom_emotes = opts.get("custom_emotes", True)
-        self.reactions = list()
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(dir_path + "/reactions.yaml", encoding="utf8") as f:
+            content = f.read()
+            self.reactions = reaction.get_reactions(content)["reactions"]
 
     def __str__(self):
         return self.name
@@ -78,22 +82,23 @@ class Subreddit:
 
     async def load_reactions(self):
         subreddit = await self.get_subreddit()
+        loaded = False
+
         if self.custom_emotes:
             try:
                 reaction_page = await subreddit.wiki.page("banhammer-reactions")
                 reacts = reaction.get_reactions(reaction_page.content_md)["reactions"]
-                if len(reacts) > 0:
+                if reacts:
                     self.reactions = reacts
+                    loaded = True
             except Exception as e:
-                print(type(e), e)
+                print(e)
 
-        if not self.reactions:
+        if not loaded:
             dir_path = os.path.dirname(os.path.realpath(__file__))
             with open(dir_path + "/reactions.yaml", encoding="utf8") as f:
-                content = f.read()
-                self.reactions = reaction.get_reactions(content)["reactions"]
                 try:
-                    subreddit.wiki.create("banhammer-reactions", content, reason="Reactions not found")
+                    subreddit.wiki.create("banhammer-reactions", content=f.read(), reason="Reactions not found")
                 except Exception as e:
                     print(e)
 
