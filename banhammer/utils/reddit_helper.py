@@ -1,3 +1,4 @@
+import logging
 import re
 from urllib.parse import urlparse
 
@@ -6,6 +7,7 @@ import apraw
 from ..models import RedditItem
 
 URL_PATTERN = re.compile(r"((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\.com|\.it){1}([a-zA-Z0-9\/_]+))")
+logger = logging.getLogger("banhammer")
 
 
 async def get_item(reddit: apraw.Reddit, subreddits, str):
@@ -29,7 +31,7 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
                 if hasattr(modmail, "subject"):
                     return RedditItem(modmail, subreddit, "url")
             except Exception as e:
-                pass
+                logger.error(e)
 
         return None
 
@@ -37,9 +39,11 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
     try:
         item = await reddit.comment(url=url)
     except Exception as e:
+        logger.error(e)
         try:
             item = await reddit.submission(url=url)
         except Exception as e:
+            logger.error(e)
             return None
 
     item_subreddit = await item.subreddit()

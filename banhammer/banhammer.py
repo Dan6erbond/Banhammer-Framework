@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import re
 
@@ -11,6 +12,7 @@ from .models import MessageBuilder, ReactionHandler, Subreddit
 from .utils import reddit_helper
 
 banhammer_purple = discord.Colour(0).from_rgb(207, 206, 255)
+logger = logging.getLogger("banhammer")
 
 
 class Banhammer:
@@ -117,7 +119,7 @@ class Banhammer:
                     watching = discord.Activity(type=discord.ActivityType.watching, name="Reddit")
                     await self.bot.change_presence(activity=watching)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
 
             for func in self.item_funcs:
                 if func["sub"]:
@@ -131,7 +133,7 @@ class Banhammer:
                             found = True
                             await func["func"](post)
                     except Exception as e:
-                        print(e)
+                        logger.error(e)
 
             for func in self.action_funcs:
                 if func["sub"]:
@@ -144,13 +146,13 @@ class Banhammer:
                             found = True
                             await func["func"](action)
                     except Exception as e:
-                        print(e)
+                        logger.error(e)
 
             if self.bot is not None and self.change_presence:
                 try:
                     await self.bot.change_presence(activity=None)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
 
             if not found:
                 wait_time = counter.count()

@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List
 
@@ -6,6 +7,7 @@ from apraw.utils import BoundedSet
 from . import reaction
 from .item import RedditItem
 
+logger = logging.getLogger("banhammer")
 
 class Subreddit:
 
@@ -92,7 +94,7 @@ class Subreddit:
                     self.reactions = reacts
                     loaded = True
             except Exception as e:
-                print(e)
+                logger.error(e)
 
         if not loaded:
             path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reactions.yaml"))
@@ -100,7 +102,7 @@ class Subreddit:
                 try:
                     await subreddit.wiki.create("banhammer-reactions", f.read(), "Reactions not found")
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
 
     def get_reactions(self, item):
         return [r for r in self.reactions if r.eligible(item)]
