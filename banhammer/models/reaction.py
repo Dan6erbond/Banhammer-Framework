@@ -8,7 +8,7 @@ from .item import RedditItem
 
 class ReactionPayload:
 
-    def __init__(self, user="Banhammer"):
+    def __init__(self, user: str = "Banhammer"):
         self.item = None
         self.user = user
         self.actions = list()
@@ -16,7 +16,7 @@ class ReactionPayload:
         self.reply = ""
         self.emoji = ""
 
-    def feed(self, item, approved, user="", emoji="", reply=""):
+    def feed(self, item: RedditItem, approved: bool, user: str = "", emoji: str = "", reply: str = ""):
         self.item = item
         self.approved = approved
         self.user = user or self.user
