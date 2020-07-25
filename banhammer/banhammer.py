@@ -188,7 +188,7 @@ class Banhammer:
         embed.title = "Configured reactions"
         for sub in self.subreddits:
             embed.add_field(name="/r/" + str(sub),
-                            value="\n".join([str(r) for r in sub.reactions]),
+                            value="\n".join([repr(r) for r in sub.reactions]),
                             inline=False)
         return embed
 

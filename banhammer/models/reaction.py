@@ -128,6 +128,9 @@ class Reaction:
         self.min_votes = kwargs.get("min_votes", 1)
 
     def __str__(self):
+        return self.emoji
+
+    def __repr__(self):
         str = self.emoji
 
         if self.type in ["submission", "comment", ""]:
@@ -190,6 +193,6 @@ def get_reactions(yml: str):
 
 
 def ignore_reactions(reactions: Reaction, remove: Union[List[str], Reaction]):
-    emojis = set(remove.emoji if isinstance(remove, Reaction) else i for i in remove)
-    reactions = [r for r in reactions if react.emoji not in emojis]
+    emojis = set(str(remove) if isinstance(remove, (str, Reaction)) else str(i) for i in remove)
+    reactions = [r for r in reactions if r.emoji not in emojis]
     return reactions
