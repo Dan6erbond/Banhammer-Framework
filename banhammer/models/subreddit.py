@@ -1,17 +1,21 @@
 import logging
 import os
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from apraw.utils import BoundedSet
 
-from . import reaction
 from .item import RedditItem
+from .reaction import get_reactions
+
+if TYPE_CHECKING:
+    from ..banhammer import Banhammer
 
 logger = logging.getLogger("banhammer")
 
+
 class Subreddit:
 
-    def __init__(self, bh, **opts):
+    def __init__(self, bh: 'Banhammer', **opts):
         self.banhammer = bh
         self.reddit = bh.reddit
 
@@ -46,7 +50,7 @@ class Subreddit:
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reactions.yaml"))
         with open(path, encoding="utf8") as f:
             content = f.read()
-            self.reactions = reaction.get_reactions(content)["reactions"]
+            self.reactions = get_reactions(content)["reactions"]
 
     def __str__(self):
         return self.name
@@ -89,7 +93,7 @@ class Subreddit:
         if self.custom_emotes:
             try:
                 reaction_page = await subreddit.wiki.page("banhammer-reactions")
-                reacts = reaction.get_reactions(reaction_page.content_md)["reactions"]
+                reacts = get_reactions(reaction_page.content_md)["reactions"]
                 if reacts:
                     self.reactions = reacts
                     loaded = True
@@ -104,10 +108,10 @@ class Subreddit:
                 except Exception as e:
                     logger.error(e)
 
-    def get_reactions(self, item):
+    def get_reactions(self, item: RedditItem):
         return [r for r in self.reactions if r.eligible(item)]
 
-    def get_reaction(self, emoji, item):
+    def get_reaction(self, emoji: str, item: RedditItem):
         for reaction in self.get_reactions(item):
             if reaction.emoji == emoji:
                 return reaction
