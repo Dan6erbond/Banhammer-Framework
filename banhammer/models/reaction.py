@@ -1,3 +1,5 @@
+from typing import List, Union
+
 from apraw.models import (Comment, ModmailConversation, ModmailMessage,
                           Submission)
 
@@ -33,7 +35,7 @@ class ReactionPayload:
 
 class ReactionHandler:
 
-    async def handle(self, reaction, item, payload):
+    async def handle(self, reaction: 'Reaction', item: RedditItem, payload: ReactionPayload):
         if isinstance(item.item, (ModmailConversation, ModmailMessage)):
             conversation = item.item.conversation if isinstance(item, ModmailMessage) else item.item
             if reaction.archive:
@@ -149,7 +151,7 @@ class Reaction:
 
         return str
 
-    async def handle(self, item, payload=ReactionPayload(), user=""):
+    async def handle(self, item: RedditItem, payload: ReactionPayload = ReactionPayload(), user: str = ""):
         if not self.eligible(item.item):
             raise NotEligibleItem()
 
@@ -157,7 +159,7 @@ class Reaction:
 
         return await item.subreddit.banhammer.reaction_handler.handle(self, item, payload)
 
-    def eligible(self, item):
+    def eligible(self, item: Union[Submission, Comment, ModmailMessage, ModmailConversation]):
         if isinstance(item, Submission):
             if self.type == "" or self.type == "submission":
                 return True
@@ -170,7 +172,7 @@ class Reaction:
         return False
 
 
-def get_reactions(yml):
+def get_reactions(yml: str):
     result = yaml.get_list(yml)
     ignore = list()
     emojis = set()
@@ -187,7 +189,7 @@ def get_reactions(yml):
     }
 
 
-def ignore_reactions(reactions, remove):
-    emojis = set(i.emoji if isinstance(item, Reaction) else i for i in remove)
+def ignore_reactions(reactions: Reaction, remove: Union[List[str], Reaction]):
+    emojis = set(remove.emoji if isinstance(remove, Reaction) else i for i in remove)
     reactions = [r for r in reactions if react.emoji not in emojis]
     return reactions
