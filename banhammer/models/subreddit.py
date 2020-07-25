@@ -41,8 +41,8 @@ class Subreddit:
 
         self.custom_emotes = opts.get("custom_emotes", True)
 
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        with open(dir_path + "/reactions.yaml", encoding="utf8") as f:
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reactions.yaml"))
+        with open(path, encoding="utf8") as f:
             content = f.read()
             self.reactions = reaction.get_reactions(content)["reactions"]
 
@@ -95,10 +95,10 @@ class Subreddit:
                 print(e)
 
         if not loaded:
-            dir_path = os.path.dirname(os.path.realpath(__file__))
-            with open(dir_path + "/reactions.yaml", encoding="utf8") as f:
+            path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "reactions.yaml"))
+            with open(path, encoding="utf8") as f:
                 try:
-                    subreddit.wiki.create("banhammer-reactions", content=f.read(), reason="Reactions not found")
+                    await subreddit.wiki.create("banhammer-reactions", f.read(), "Reactions not found")
                 except Exception as e:
                     print(e)
 
