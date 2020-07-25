@@ -72,6 +72,17 @@ class RedditItem:
     def url(self):
         return get_item_url(self.item)
 
+    @property
+    def body(self):
+        if self.type == "submission":
+            return self.item.selftext[:1021] + (self.item.selftext[1021:] and "...") or "Empty"
+        elif self.type == "comment":
+            return self.item.body[:1021] + (self.item.body[1021:] and "...")
+        elif self.type == "modmail":
+            return self.item.body_md[:1021] + (self.item.body_md[1021:] and "...")
+        elif self.type == "mod action":
+            return self.item.action
+
 
 def get_item_url(item):
     if isinstance(item, Submission):

@@ -9,12 +9,12 @@ class MessageBuilder:
         if item.type in ["submission", "comment"]:
             return f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!\n\n" + \
                 f"https://www.reddit.com{item.item.permalink}\n\n" + \
-                f"**Title:** {item.item.title}\n**Body:**\n{item.item.selftext}"
+                f"**Title:** {item.item.title}\n**Body:**\n{item.body}"
         elif item.type == "modmail":
             return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.get_author_name()}!" + \
-                f"\n\n{item.item.body_md}"
+                f"\n\n{item.body}"
         else:
-            return f"New action taken by /u/{item.item._data['mod']} on /r/{item.item.subreddit}: `{item.item.action}`"
+            return f"New action taken by /u/{item.item._data['mod']} on /r/{item.item.subreddit}: `{item.body}`"
 
     async def get_item_embed(self, item: RedditItem, embed_color: discord.Color = None):
         embed = discord.Embed(
@@ -38,20 +38,18 @@ class MessageBuilder:
         if item.type == "submission":
             embed.add_field(name="Title", value=item.item.title, inline=False)
             if item.item.is_self:
-                embed.add_field(name="Body",
-                                value=item.item.selftext if item.item.selftext else "Empty",
-                                inline=False)
+                embed.add_field(name="Body", value=item.body, inline=False)
             else:
                 embed.add_field(name="URL", value=item.item.url, inline=False)
             if item.source == "reports":
                 reports = [f"{r[1]} {r[0]}" for r in item.item.user_reports]
                 embed.add_field(name="Reports", value="\n".join(reports), inline=False)
         elif item.type == "comment":
-            embed.description = item.item.body
+            embed.description = item.body
         elif item.type == "modmail":
-            embed.description = item.item.body_md
+            embed.description = item.body
         elif item.type == "mod action":
-            embed.description = f"Action: `{item.item.action}`"
+            embed.description = f"Action: `{item.body}`"
 
         return embed
 
