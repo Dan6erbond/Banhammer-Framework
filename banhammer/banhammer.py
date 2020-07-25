@@ -120,35 +120,31 @@ class Banhammer:
                     print(e)
 
             for func in self.item_funcs:
-                subs = list()
                 if func["sub"]:
-                    for sub in self.subreddits:
-                        if str(sub.subreddit).lower() == func["sub"].lower():
-                            subs.append(sub)
-                            break
+                    subs = [sub for sub in self.subreddits if str(sub).lower() == func["sub"].lower()]
                 else:
-                    subs.extend(self.subreddits)
+                    subs = self.subreddits
                 for sub in subs:
                     sub_func = getattr(sub, func["sub_func"])
-                    async for post in sub_func():
-                        if not found:
+                    try:
+                        async for post in sub_func():
                             found = True
-                        await func["func"](post)
+                            await func["func"](post)
+                    except Exception as e:
+                        print(e)
 
             for func in self.action_funcs:
-                subs = list()
                 if func["sub"]:
-                    for sub in self.subreddits:
-                        if str(sub.subreddit).lower() == func["sub"].lower():
-                            subs.append(sub)
-                            break
+                    subs = [sub for sub in self.subreddits if str(sub).lower() == func["sub"].lower()]
                 else:
-                    subs.extend(self.subreddits)
+                    subs = self.subreddits
                 for sub in subs:
-                    async for action in sub.get_mod_actions(func["mods"]):
-                        if not found:
+                    try:
+                        async for action in sub.get_mod_actions(func["mods"]):
                             found = True
-                        await func["func"](action)
+                            await func["func"](action)
+                    except Exception as e:
+                        print(e)
 
             if self.bot is not None and self.change_presence:
                 try:
