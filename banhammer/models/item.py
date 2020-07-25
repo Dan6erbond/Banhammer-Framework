@@ -1,16 +1,21 @@
 import logging
+from typing import TYPE_CHECKING
 
 import apraw
 import discord
 from apraw.models import (Comment, Message, ModmailConversation,
                           ModmailMessage, Submission, Subreddit)
 
+if TYPE_CHECKING:
+    from .subreddit import Subreddit
+
 logger = logging.getLogger("banhammer")
 
 
 class RedditItem:
 
-    def __init__(self, item, subreddit, source):
+    def __init__(self, item: Union[Comment, ModmailConversation, ModmailMessage,
+                                   Submission], subreddit: 'Subreddit', source: str):
         self.item = item
         self.id = item.id
         self.type = "submission" if isinstance(
@@ -57,7 +62,7 @@ class RedditItem:
     def get_reactions(self):
         return self.subreddit.get_reactions(self.item)
 
-    async def add_reactions(self, message):
+    async def add_reactions(self, message: discord.Message):
         for r in self.get_reactions():
             try:
                 await message.add_reaction(r.emoji)
@@ -65,7 +70,7 @@ class RedditItem:
                 logger.error(e)
                 continue
 
-    def get_reaction(self, emoji):
+    def get_reaction(self, emoji: str):
         return self.subreddit.get_reaction(emoji, self.item)
 
     @property
@@ -84,7 +89,7 @@ class RedditItem:
             return self.item.action
 
 
-def get_item_url(item):
+def get_item_url(item: RedditItem):
     if isinstance(item, Submission):
         return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item.id}"
     elif isinstance(item, Comment):
