@@ -9,7 +9,7 @@ class CustomMessageBuilder(messagebuilder.MessageBuilder):
                 item.item.selftext)
         elif item.type == "modmail":
             return "New message in modmail conversation '{}' by /u/{}!\n\n{}".format(
-                item.item.conversation.subject, item.item.author, item.item.body_markdown)
+                item.item.conversation.subject, item.item.author, item.item.body_md)
         else:
             return "/u/{} took an action on /r/{}!\n\n`{}`".format(item.item.mod, item.item.subreddit,
                                                                      item.item.action)

@@ -12,7 +12,7 @@ class MessageBuilder:
                 f"**Title:** {item.item.title}\n**Body:**\n{item.item.selftext}"
         elif item.type == "modmail":
             return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.get_author_name()}!" + \
-                f"\n\n{item.item.body_markdown}"
+                f"\n\n{item.item.body_md}"
         else:
             return f"New action taken by /u/{item.item._data['mod']} on /r/{item.item.subreddit}: `{item.item.action}`"
 
@@ -49,7 +49,7 @@ class MessageBuilder:
         elif item.type == "comment":
             embed.description = item.item.body
         elif item.type == "modmail":
-            embed.description = item.item.body_markdown
+            embed.description = item.item.body_md
         elif item.type == "mod action":
             embed.description = f"Action: `{item.item.action}`"
 
