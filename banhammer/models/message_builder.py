@@ -53,7 +53,7 @@ class MessageBuilder:
 
         return embed
 
-    def get_ban_message(self, item, ban_duration):
+    def get_ban_message(self, item: RedditItem, ban_duration: int):
         ban_type = "permanent" if not ban_duration else "temporary"
         disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
         return f"Our moderator team has reviewed [this post]({item.url}) and decided to give you a {ban_type} ban. " \
