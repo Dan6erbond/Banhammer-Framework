@@ -106,19 +106,19 @@ class ReactionHandler:
 
         if isinstance(reaction.ban, int):
             ban_message = item.subreddit.banhammer.message_builder.get_ban_message(item, reaction.ban)
+            author_name = await item.get_author_name()
+            subreddit = await item.item.subreddit()
             if reaction.ban == 0:
-                subreddit = await item.item.subreddit()
-                await subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
+                await subreddit.banned.add(author_name, ban_reason="Breaking Rules",
                                            ban_message=ban_message, note="Banhammer Ban")
                 logger.info("Permanently banned author.")
-                payload.actions.append("/u/" + item.item.author.name + " permanently banned")
+                payload.actions.append(f"/u/ {author_name} permanently banned")
             else:
-                subreddit = await item.item.subreddit()
-                await subreddit.banned.add(item.item.author.name, ban_reason="Breaking Rules",
+                await subreddit.banned.add(author_name, ban_reason="Breaking Rules",
                                            duration=reaction.ban, ban_message=ban_message,
                                            note="Banhammer Ban")
                 logger.info(f"Banned author for {reaction.ban} day(s).")
-                payload.actions.append(f"/u/{item.item.author.name} banned for {reaction.ban} day(s)")
+                payload.actions.append(f"/u/{author_name} banned for {reaction.ban} day(s)")
 
         return payload
 

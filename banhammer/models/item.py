@@ -37,6 +37,9 @@ class RedditItem:
     def format_reply(self, reply: str):
         return self.subreddit.banhammer.message_builder.format_reply(self, reply)
 
+    def get_ban_message(self, ban_duration: int):
+        return self.subreddit.banhammer.message_builder.get_ban_message(self, ban_duration)
+
     async def get_author(self):
         if not self._author:
             if isinstance(self.item, ModAction):
