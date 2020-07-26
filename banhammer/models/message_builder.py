@@ -35,7 +35,7 @@ class MessageBuilder:
             if item.source == "reports":
                 title = f"{item.type.title()} reported on /r/{item.subreddit} by /u/{await item.get_author_name()}!"
             else:
-                title = f"New {item.type} on /r/{item.subreddit} by /u/{author_name}!"
+                title = f"New {item.type} on /r/{item.subreddit} by /u/{await item.get_author_name()}!"
         elif item.type == "modmail":
             title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.subreddit} by /u/{await item.get_author_name()}!"
         else:
