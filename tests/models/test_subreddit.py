@@ -24,7 +24,7 @@ class TestSubreddit:
     @pytest.mark.asyncio
     async def test_setup(self, subreddit: Subreddit):
         await subreddit.setup()
-        assert isinstance(subreddit.get_status(), str)
+        assert isinstance(subreddit.status, str)
 
     @pytest.mark.asyncio
     async def test_get_reactions(self, reddit: apraw.Reddit, subreddit: Subreddit):

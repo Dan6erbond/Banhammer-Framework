@@ -42,3 +42,17 @@ class TestMessageBuilder:
 
         if item:
             assert isinstance(banhammer.message_builder.get_ban_message(item, 10), str)
+
+    @pytest.mark.asyncio
+    async def test_format_reply(self, reddit: apraw.Reddit, subreddit: Subreddit, banhammer: Banhammer):
+        sub = await reddit.subreddit("banhammerdemo")
+        item = None
+
+        async for s in sub.new():
+            item = RedditItem(s, subreddit, "new")
+            break
+
+        assert item
+
+        if item:
+            assert isinstance(banhammer.message_builder.format_reply(item, "Test reply."), str)
