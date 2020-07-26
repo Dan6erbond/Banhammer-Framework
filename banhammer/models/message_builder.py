@@ -9,19 +9,19 @@ class MessageBuilder:
     async def get_item_message(self, item: RedditItem):
         if item.type in ["submission", "comment"]:
             author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             return f"New {item.type} on /r/{subreddit} by /u/{author_name}!\n\n" + \
                 f"{item.url}\n\n" + \
                 f"**Title:** {item.item.title}\n**Body:**\n{item.body}"
         elif item.type == "modmail":
             author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             subject = discord.utils.escape_markdown(item.item.conversation.subject)
             return f"New message in modmail conversation '{subject}' on /r/{subreddit} by /u/{author_name}!" + \
                 f"\n\n{item.body}"
         else:
             author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             return f"New action taken by /u/{author_name} on /r/{subreddit}: `{item.body}`"
 
     async def get_item_embed(self, item: RedditItem, embed_color: discord.Color = None):
@@ -32,19 +32,19 @@ class MessageBuilder:
         title = ""
         if item.type in ["submission", "comment"]:
             author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             if item.source == "reports":
                 title = f"{item.type.title()} reported on /r/{subreddit} by /u/{author_name}!"
             else:
                 title = f"New {item.type} on /r/{subreddit} by /u/{author_name}!"
         elif item.type == "modmail":
             author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             subject = discord.utils.escape_markdown(item.item.conversation.subject)
             title = f"New message in modmail conversation '{subject}' on /r/{subreddit} by /u/{author_name}!"
         else:
             author_name = discord.utils.escape_markdown(item.item._data['mod'])
-            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             title = f"New action taken by /u/{author_name} on /r/{subreddit}!"
 
         url = item.url
