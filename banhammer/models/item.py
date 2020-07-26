@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from .subreddit import Subreddit
 
 
-
 class RedditItem:
 
     def __init__(self, item: Union[Comment, ModmailConversation, ModmailMessage,
@@ -34,6 +33,9 @@ class RedditItem:
 
     async def get_embed(self, embed_color: discord.Color = None):
         return await self.subreddit.banhammer.message_builder.get_item_embed(self, embed_color)
+
+    def format_reply(self, reply: str):
+        return self.subreddit.banhammer.message_builder.format_reply(self, reply)
 
     async def get_author(self):
         if not self._author:
