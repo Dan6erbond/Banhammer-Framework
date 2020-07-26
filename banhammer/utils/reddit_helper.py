@@ -57,11 +57,10 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
         logger.error(f"Failed to retrieve item {item} subreddit: {e}")
         return None
     else:
-        subreddit = None
         for sub in subreddits:
             s = await sub.get_subreddit()
             if s.id == item_subreddit.id:
-                return RedditItem(item, subreddit, "url")
+                return RedditItem(item, sub, "url")
     return None
 
 
