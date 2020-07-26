@@ -96,14 +96,14 @@ def get_item_url(item: RedditItem):
     if isinstance(item, Submission):
         return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item.id}"
     elif isinstance(item, Comment):
-        return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item._data['link_id']}/_/{item.id}"
+        return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item.link_id.replace('t3_', '')}/_/{item.id}"
     elif isinstance(item, ModmailConversation):
         return "https://mod.reddit.com/mail/all/" + item.id
     elif isinstance(item, ModmailMessage):
         return "https://mod.reddit.com/mail/all/" + item.conversation.id
     elif isinstance(item, Message):
         if item.was_comment:
-            return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item._data['link_id']}/_/{item.id}"
+            return f"https://www.reddit.com/r/{item._data['subreddit']}/comments/{item.link_id.replace('t3_', '')}/_/{item.id}"
         else:
             return "https://www.reddit.com/message/messages/{}" + str(item)
     elif isinstance(item, Subreddit):
