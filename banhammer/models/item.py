@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Union
 
 import apraw
 import discord
-from apraw.models import (Comment, Message, ModmailConversation,
+from apraw.models import (Comment, Message, ModAction, ModmailConversation,
                           ModmailMessage, Submission, Subreddit)
 
 from ..const import logger
@@ -39,7 +39,12 @@ class RedditItem:
 
     async def get_author(self):
         if not self._author:
-            if not isinstance(self.item, ModmailConversation):
+            if isinstance(self.item, ModAction):
+                try:
+                    self._author = await self.item.mod()
+                except Exception as e:
+                    logger.error(f"Failed to retrieve item author in {self.item}: {e}")
+            elif not isinstance(self.item, ModmailConversation):
                 try:
                     self._author = await self.item.author()
                 except Exception as e:
@@ -58,11 +63,14 @@ class RedditItem:
         return author_removed
 
     async def get_author_name(self):
-        author = await self.get_author()
         if await self.is_author_removed():
             return "[deleted]"
         else:
-            return author.name
+            author = await self.get_author()
+            if not isinstance(author, dict):
+                return author.name
+            else:
+                return author["name"]
 
     def get_reactions(self):
         return self.subreddit.get_reactions(self.item)

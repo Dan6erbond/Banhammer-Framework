@@ -8,14 +8,21 @@ class MessageBuilder:
 
     async def get_item_message(self, item: RedditItem):
         if item.type in ["submission", "comment"]:
-            return f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!\n\n" + \
-                f"https://www.reddit.com{item.item.permalink}\n\n" + \
+            author_name = discord.utils.escape_markdown(await item.get_author_name())
+            subreddit = discord.utils.escape_markdown(item.subreddit)
+            return f"New {item.type} on /r/{subreddit} by /u/{author_name}!\n\n" + \
+                f"{item.url}\n\n" + \
                 f"**Title:** {item.item.title}\n**Body:**\n{item.body}"
         elif item.type == "modmail":
-            return f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.get_author_name()}!" + \
+            author_name = discord.utils.escape_markdown(await item.get_author_name())
+            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subject = discord.utils.escape_markdown(item.item.conversation.subject)
+            return f"New message in modmail conversation '{subject}' on /r/{subreddit} by /u/{author_name}!" + \
                 f"\n\n{item.body}"
         else:
-            return f"New action taken by /u/{item.item._data['mod']} on /r/{item.item.subreddit}: `{item.body}`"
+            author_name = discord.utils.escape_markdown(await item.get_author_name())
+            subreddit = discord.utils.escape_markdown(item.subreddit)
+            return f"New action taken by /u/{author_name} on /r/{subreddit}: `{item.body}`"
 
     async def get_item_embed(self, item: RedditItem, embed_color: discord.Color = None):
         embed = discord.Embed(
@@ -24,27 +31,42 @@ class MessageBuilder:
 
         title = ""
         if item.type in ["submission", "comment"]:
+            author_name = discord.utils.escape_markdown(await item.get_author_name())
+            subreddit = discord.utils.escape_markdown(item.subreddit)
             if item.source == "reports":
-                title = f"{item.type.title()} reported on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!"
+                title = f"{item.type.title()} reported on /r/{subreddit} by /u/{author_name}!"
             else:
-                title = f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!"
+                title = f"New {item.type} on /r/{subreddit} by /u/{author_name}!"
         elif item.type == "modmail":
-            title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.item.conversation._data['owner']} by /u/{await item.get_author_name()}!"
+            author_name = discord.utils.escape_markdown(await item.get_author_name())
+            subreddit = discord.utils.escape_markdown(item.subreddit)
+            subject = discord.utils.escape_markdown(item.item.conversation.subject)
+            title = f"New message in modmail conversation '{subject}' on /r/{subreddit} by /u/{author_name}!"
         else:
-            title = f"New action taken by /u/{item.item._data['mod']} on /r/{item.item._data['subreddit']}!"
+            author_name = discord.utils.escape_markdown(item.item._data['mod'])
+            subreddit = discord.utils.escape_markdown(item.subreddit)
+            title = f"New action taken by /u/{author_name} on /r/{subreddit}!"
 
         url = item.url
         embed.set_author(name=title, url=url if url else discord.Embed.Empty)
 
         if item.type == "submission":
-            embed.add_field(name="Title", value=item.item.title, inline=False)
+            embed.add_field(
+                name="Title",
+                value=discord.utils.escape_markdown(item.item.title),
+                inline=False)
             if item.item.is_self:
                 embed.add_field(name="Body", value=item.body, inline=False)
             else:
-                embed.add_field(name="URL", value=item.item.url, inline=False)
+                embed.add_field(
+                    name="URL",
+                    value=discord.utils.escape_markdown(item.item.url),
+                    inline=False)
             if item.source == "reports":
-                reports = [f"{r[1]} {r[0]}" for r in item.item.user_reports]
-                embed.add_field(name="Reports", value="\n".join(reports), inline=False)
+                embed.add_field(
+                    name="Reports",
+                    value="\n".join(f"{r[1]} {r[0]}" for r in item.item.user_reports),
+                    inline=False)
         elif item.type == "comment":
             embed.description = item.body
         elif item.type == "modmail":
