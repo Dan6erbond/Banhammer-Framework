@@ -105,7 +105,7 @@ class ReactionHandler:
             payload.actions.append("replied to")
 
         if isinstance(reaction.ban, int):
-            ban_message = item.subreddit.banhammer.message_builder.get_ban_message(item, reaction.ban)
+            ban_message = item.get_ban_message(reaction.ban)
             author_name = await item.get_author_name()
             subreddit = await item.item.subreddit()
             if reaction.ban == 0:
