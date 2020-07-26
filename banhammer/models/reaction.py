@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 from apraw.models import (Comment, ModmailConversation, ModmailMessage,
                           Submission)
@@ -128,22 +128,28 @@ class Reaction:
     def __init__(self, **kwargs):
         self.config = kwargs
 
-        self.emoji = kwargs.get("emoji", "").strip()
+        self.emoji = kwargs["emoji"].strip()
 
-        self.type = kwargs.get("type", "")
-        self.flair = kwargs.get("flair", "")
-        self.approve = kwargs.get("approve", False)
-        self.mark_nsfw = kwargs.get("mark_nsfw", False)
-        self.lock = kwargs.get("lock", False)
-        self.reply = kwargs.get("reply", "")
+        data = {
+            "type": "",
+            "flair": "",
+            "approve": False,
+            "mark_nsfw": False,
+            "lock": False,
+            "reply": "",
+            "sticky_reply": True,
+            "distinguish_reply": True,
+            "ban": None,
+            "archive": False,
+            "mute": False,
+            "min_votes": 1,
+            **kwargs
+        }
 
-        self.sticky_reply = kwargs.get("sticky_reply", True)
-        self.distinguish_reply = kwargs.get("distinguish_reply", True) or self.sticky_reply
+        data["distinguish_reply"] = data["distinguish_reply"] or data["sticky_reply"]
 
-        self.ban = kwargs.get("ban", None)
-        self.archive = kwargs.get("archive", False)
-        self.mute = kwargs.get("mute", False)
-        self.min_votes = kwargs.get("min_votes", 1)
+        for k, v in data.items():
+            setattr(self, k, v)
 
     def __str__(self):
         return self.emoji
