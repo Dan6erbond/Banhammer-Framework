@@ -26,6 +26,9 @@ class RedditItem:
         self.source = source
         self._author = None
 
+    def __repr__(self):
+        return f"<{self.type.title()} id={self.id} source={self.source}>"
+
     async def get_message(self):
         return await self.subreddit.banhammer.message_builder.get_item_message(self)
 

@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 
 from apraw.models import (Comment, ModmailConversation, ModmailMessage,
                           Submission)
@@ -32,6 +32,9 @@ class ReactionPayload:
         return f"**{self.item.type.title()} {' and '.join(self.actions)} by {self.user}!**\n\n" \
                f"{self.item.type.title()} by /u/{await self.item.get_author_name()}:\n\n" \
                f"{self.item.url}"
+
+    def __repr__(self):
+        return f"<ReactionPayload item={self.item} approved={self.approved} actions={self.actions}>"
 
 
 class ReactionHandler:
@@ -169,9 +172,13 @@ class Reaction:
 
         return str
 
-    async def handle(self, item: RedditItem, payload: ReactionPayload = ReactionPayload(), user: str = ""):
+    async def handle(self, item: RedditItem, payload: Optional[ReactionPayload] = None, user: str = ""):
         if not self.eligible(item.item):
             raise NotEligibleItem()
+
+        payload = payload or ReactionPayload()
+
+        logger.info(f"Received payload: {payload}")
 
         payload.feed(item, self.approve, user or payload.user, self.emoji, self.reply)
 
