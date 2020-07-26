@@ -31,24 +31,16 @@ class MessageBuilder:
 
         title = ""
         if item.type in ["submission", "comment"]:
-            author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(str(item.subreddit))
             if item.source == "reports":
-                title = f"{item.type.title()} reported on /r/{subreddit} by /u/{author_name}!"
+                title = f"{item.type.title()} reported on /r/{item.subreddit} by /u/{await item.get_author_name()}!"
             else:
                 title = f"New {item.type} on /r/{subreddit} by /u/{author_name}!"
         elif item.type == "modmail":
-            author_name = discord.utils.escape_markdown(await item.get_author_name())
-            subreddit = discord.utils.escape_markdown(str(item.subreddit))
-            subject = discord.utils.escape_markdown(item.item.conversation.subject)
-            title = f"New message in modmail conversation '{subject}' on /r/{subreddit} by /u/{author_name}!"
+            title = f"New message in modmail conversation '{item.item.conversation.subject}' on /r/{item.subreddit} by /u/{await item.get_author_name()}!"
         else:
-            author_name = discord.utils.escape_markdown(item.item._data['mod'])
-            subreddit = discord.utils.escape_markdown(str(item.subreddit))
-            title = f"New action taken by /u/{author_name} on /r/{subreddit}!"
+            title = f"New action taken by /u/{await item.get_author_name()} on /r/{item.subreddit}!"
 
-        url = item.url
-        embed.set_author(name=title, url=url if url else discord.Embed.Empty)
+        embed.set_author(name=title, url=item.url if item.url else discord.Embed.Empty)
 
         if item.type == "submission":
             embed.add_field(
