@@ -52,7 +52,7 @@ class ReactionHandler:
                 logger.info("Muted modmail.")
                 payload.actions.append("muted")
             if reaction.reply != "":
-                await conversation.reply(reaction.reply)
+                await conversation.reply(item.format_reply(reaction.reply))
                 logger.info("Replied to modmail.")
                 payload.actions.append("replied to")
             return payload
@@ -97,7 +97,7 @@ class ReactionHandler:
                 payload.actions.append("marked NSFW")
 
         if reaction.reply:
-            reply = await item.item.reply(reaction.reply)
+            reply = await item.item.reply(item.format_reply(reaction.reply))
             logger.info("Replied to item.")
             if reaction.distinguish_reply:
                 await reply.mod.distinguish(sticky=reaction.sticky_reply)
