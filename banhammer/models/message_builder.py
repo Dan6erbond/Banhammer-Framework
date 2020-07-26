@@ -5,6 +5,7 @@ from .item import RedditItem
 
 
 class MessageBuilder:
+
     async def get_item_message(self, item: RedditItem):
         if item.type in ["submission", "comment"]:
             return f"New {item.type} on /r/{item.item._data['subreddit']} by /u/{await item.get_author_name()}!\n\n" + \
@@ -58,3 +59,7 @@ class MessageBuilder:
         disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
         return f"Our moderator team has reviewed [this post]({item.url}) and decided to give you a {ban_type} ban. " \
                f"If you wish to appeal this ban, please respond to this message.\n\n{disclaimer}"
+
+    def format_reply(self, item: RedditItem, reply: str):
+        disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
+        return f"{reply}\n\n{disclaimer}"
