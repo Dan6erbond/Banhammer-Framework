@@ -6,11 +6,16 @@ import apraw
 from ..const import logger
 from ..models import RedditItem
 
-URL_PATTERN = re.compile(r"((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\.com|\.it){1}([a-zA-Z0-9\/_]+))")
+REDDIT_URL_PATTERN = re.compile(
+    r"((https:\/\/)?((www|old|np|mod)\.)?(reddit|redd){1}(\.com|\.it){1}([a-zA-Z0-9\/_]+))")
+POST_URL_PATTERN = re.compile(
+    r"/r(?:/(?P<subreddit>\w+))/comments(?:/(?P<submission>\w+))(?:/\w+/(?P<comment>\w+))?")
+MODMAIL_URL_PATTERN = re.compile(
+    r"https://mod.reddit.com/mail/all/(?P<id>\w+)")
 
 
 async def get_item(reddit: apraw.Reddit, subreddits, str):
-    for u in URL_PATTERN.findall(str):
+    for u in REDDIT_URL_PATTERN.findall(str):
         if is_url(u[0]):
             item = await get_item_from_url(reddit, subreddits, u[0])
             if item:
@@ -21,29 +26,30 @@ async def get_item(reddit: apraw.Reddit, subreddits, str):
 
 
 async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
-    if url.startswith("https://mod.reddit.com/mail/all/"):
-        id = url.split("/")[-1] if url.split("/")[-1] != "" else url.split("/")[-2]
-
+    match = MODMAIL_URL_PATTERN.search(url)
+    if match:
         for subreddit in subreddits:
             try:
-                modmail = await subreddit._subreddit.modmail(id)
+                modmail = await subreddit._subreddit.modmail(match.group("id"))
                 if hasattr(modmail, "subject"):
                     return RedditItem(modmail, subreddit, "url")
             except Exception as e:
-                logger.error(f"Failed to fetch modmail by ID '{id}': {e}")
-
+                logger.error(f"Failed to fetch modmail by ID '{match.group('id')}': {e}")
         return None
 
-    item = None
-    try:
-        item = await reddit.comment(url=url)
-    except Exception as e:
-        logger.error(f"Failed to fetch comment by URL '{url}': {e}")
+    match = POST_URL_PATTERN.search(url)
+    if match and not match.group("comment"):
         try:
-            item = await reddit.submission(url=url)
+            item = await reddit.submission(match.group("submission"))
         except Exception as e:
-            logger.error(f"Failed to fetch submission by URL '{url}': {e}")
-            return None
+            logger.error(f"Failed to fetch submission by ID '{match.group('submission')}': {e}")
+    elif match:
+        try:
+            item = await reddit.comment(match.group("comment"))
+        except Exception as e:
+            logger.error(f"Failed to fetch comment by ID '{match.group('comment')}': {e}")
+    else:
+        return None
 
     try:
         item_subreddit = await item.subreddit()
@@ -55,11 +61,8 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
         for sub in subreddits:
             s = await sub.get_subreddit()
             if s.id == item_subreddit.id:
-                subreddit = sub
-                break
-
-        if subreddit:
-            return RedditItem(item, subreddit, "url")
+                return RedditItem(item, subreddit, "url")
+    return None
 
 
 def is_url(url):
