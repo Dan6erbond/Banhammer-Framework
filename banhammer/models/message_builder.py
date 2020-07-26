@@ -95,7 +95,7 @@ class MessageBuilder:
             payload.actions.append("dismissed")
 
         embed = discord.Embed(
-            colour=embed_color or item.subreddit.banhammer.embed_color
+            colour=embed_color or payload.item.subreddit.banhammer.embed_color
         )
 
         author_name = discord.utils.escape_markdown(await payload.item.get_author_name())
