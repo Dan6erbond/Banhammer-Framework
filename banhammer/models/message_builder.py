@@ -99,9 +99,8 @@ class MessageBuilder:
         )
 
         author_name = discord.utils.escape_markdown(await payload.item.get_author_name())
-        url = discord.utils.escape_markdown(payload.item.url)
 
         embed.set_author(name=f"{payload.item.type.title()} {' and '.join(payload.actions)} by {payload.user}!")
-        embed.description = f"[{payload.item.type.title()}]({url}) by /u/{author_name}."
+        embed.description = f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}."
 
         return embed
