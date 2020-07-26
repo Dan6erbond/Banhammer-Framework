@@ -2,6 +2,7 @@ import discord
 
 from ..const import BOT_DISCLAIMER
 from .item import RedditItem
+from .reaction import ReactionPayload
 
 
 class MessageBuilder:
@@ -77,3 +78,30 @@ class MessageBuilder:
     def format_reply(self, item: RedditItem, reply: str):
         disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
         return f"{reply}\n\n{disclaimer}"
+
+    async def get_payload_message(self, payload: ReactionPayload):
+        if not payload.actions:
+            payload.actions.append("dismissed")
+
+        user = discord.utils.escape_markdown(payload.user)
+        author_name = discord.utils.escape_markdown(await payload.item.get_author_name())
+        url = discord.utils.escape_markdown(payload.item.url)
+
+        return f"**{payload.item.type.title()} {' and '.join(payload.actions)} by {user}!**\n\n" \
+               f"{payload.item.type.title()} by /u/{author_name}:\n\n{url}"
+
+    async def get_payload_embed(self, payload: ReactionPayload, embed_color: discord.Color = None):
+        if not payload.actions:
+            payload.actions.append("dismissed")
+
+        embed = discord.Embed(
+            colour=embed_color or item.subreddit.banhammer.embed_color
+        )
+
+        author_name = discord.utils.escape_markdown(await payload.item.get_author_name())
+        url = discord.utils.escape_markdown(payload.item.url)
+
+        embed.set_author(name=f"{payload.item.type.title()} {' and '.join(payload.actions)} by {payload.user}!")
+        embed.description = f"[{payload.item.type.title()}]({url}) by /u/{author_name}."
+
+        return embed

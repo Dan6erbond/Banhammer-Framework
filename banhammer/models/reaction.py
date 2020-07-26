@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 
+import discord
 from apraw.models import (Comment, ModmailConversation, ModmailMessage,
                           Submission)
 
@@ -11,9 +12,9 @@ from .item import RedditItem
 
 class ReactionPayload:
 
-    def __init__(self, user: str = "Banhammer"):
-        self.item = None
+    def __init__(self, user: str = "Banhammer", item: RedditItem = None):
         self.user = user
+        self.item = item
         self.actions = list()
         self.approved = False
         self.reply = ""
@@ -27,11 +28,10 @@ class ReactionPayload:
         self.reply = reply
 
     async def get_message(self):
-        if len(self.actions) == 0:
-            self.actions.append("dismissed")
-        return f"**{self.item.type.title()} {' and '.join(self.actions)} by {self.user}!**\n\n" \
-               f"{self.item.type.title()} by /u/{await self.item.get_author_name()}:\n\n" \
-               f"{self.item.url}"
+        return await self.item.subreddit.banhammer.message_builder.get_payload_message(self)
+
+    async def get_embed(self):
+        return await self.item.subreddit.banhammer.message_builder.get_payload_embed(self)
 
     def __repr__(self):
         return f"<ReactionPayload item={self.item} approved={self.approved} actions={self.actions}>"
