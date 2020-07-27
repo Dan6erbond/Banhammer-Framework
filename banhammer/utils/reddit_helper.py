@@ -43,11 +43,13 @@ async def get_item_from_url(reddit: apraw.Reddit, subreddits, url):
             item = await reddit.submission(match.group("submission"))
         except Exception as e:
             logger.error(f"Failed to fetch submission by ID '{match.group('submission')}': {e}")
+            return None
     elif match:
         try:
             item = await reddit.comment(match.group("comment"))
         except Exception as e:
             logger.error(f"Failed to fetch comment by ID '{match.group('comment')}': {e}")
+            return None
     else:
         return None
 
