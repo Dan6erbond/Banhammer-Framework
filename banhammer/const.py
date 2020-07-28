@@ -1,5 +1,7 @@
 import logging
 
+import discord
+
 __title__ = "banhammer"
 __author__ = "Dan6erbond"
 __license__ = "GNU General Public License v3 (GPLv3)"
