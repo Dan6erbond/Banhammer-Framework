@@ -203,4 +203,5 @@ class MessageBuilder:
             colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
         )
         embed.timestamp = datetime.utcnow()
-        return
+        return embed
+
