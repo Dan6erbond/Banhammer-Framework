@@ -31,8 +31,9 @@ class MessageBuilder:
             subreddit = escape_markdown(str(item.subreddit))
             return f"New action taken by /u/{author_name} on /r/{subreddit}: `{item.body}`"
 
-    async def get_item_embed(self, item: RedditItem, embed_color: discord.Color = None):
-        embed = discord.Embed(
+    async def get_item_embed(self, item: RedditItem, embed_color: discord.Color = None,
+                             embed_template: discord.Embed = None):
+        embed = embed_template or discord.Embed(
             colour=embed_color or item.subreddit.banhammer.embed_color
         )
 
@@ -133,15 +134,16 @@ class MessageBuilder:
         return f"**{payload.item.type.title()} {' and '.join(payload.actions)} by {user}!**\n\n" \
                f"{payload.item.type.title()} by /u/{author_name}:\n\n{url}"
 
-    async def get_payload_embed(self, payload: ReactionPayload, embed_color: discord.Color = None):
+    async def get_payload_embed(self, payload: ReactionPayload, embed_color: discord.Color = None,
+                                embed_template: discord.Embed = None):
         if not payload.actions:
             payload.actions.append("dismissed")
 
         embed = discord.Embed(
-            description=f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}.",
             colour=embed_color or payload.item.subreddit.banhammer.embed_color
         )
 
+        embed.description = f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}."
         embed.timestamp = datetime.utcnow()
 
         author_name = escape_markdown(await payload.item.get_author_name())
@@ -150,7 +152,8 @@ class MessageBuilder:
 
         return embed
 
-    def get_reactions_embed(self, subreddits: List[Subreddit], embed_color: discord.Color = None):
+    def get_reactions_embed(self, subreddits: List[Subreddit], embed_color: discord.Color = None,
+                            embed_template: discord.Embed = None):
         """
         Load an embed with all the configured reactions per subreddit.
 
@@ -167,11 +170,11 @@ class MessageBuilder:
         embed: discord.Embed
             The embed listing all the configured reactions per subreddit.
         """
-        embed = discord.Embed(
-            title="Configured reactions",
+        embed = embed_template or discord.Embed(
             colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
         )
 
+        embed.title = "Configured reactions"
         embed.timestamp = datetime.utcnow()
 
         for sub in subreddits:
@@ -180,7 +183,8 @@ class MessageBuilder:
                             inline=False)
         return embed
 
-    def get_subreddits_embed(self, subreddits: List[Subreddit], embed_color: discord.Color = None):
+    def get_subreddits_embed(self, subreddits: List[Subreddit], embed_color: discord.Color = None,
+                             embed_template: discord.Embed = None):
         """
         Load an embed with all the configured subreddits and their enabled streams.
 
@@ -197,16 +201,19 @@ class MessageBuilder:
         embed: discord.Embed
             The embed of all the subreddits and their enabled streams.
         """
-        embed = discord.Embed(
-            title="Subreddits' statuses",
-            description="\n".join([s.status for s in subreddits]),
+        embed = embed_template or discord.Embed(
             colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
         )
+
+        embed.title = "Subreddits' statuses"
+        embed.description = "\n".join([s.status for s in subreddits])
         embed.timestamp = datetime.utcnow()
+
         return embed
 
-    async def get_subreddit_reactions_embed(self, subreddit: Subreddit, embed_color: discord.Color = None):
-        embed = discord.Embed(
+    async def get_subreddit_reactions_embed(self, subreddit: Subreddit, embed_color: discord.Color = None,
+                                            embed_template: discord.Embed = None):
+        embed = embed_template or discord.Embed(
             colour=embed_color or subreddit.banhammer.embed_color
         )
 
