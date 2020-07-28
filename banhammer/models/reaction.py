@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import discord
 from apraw.models import (Comment, ModmailConversation, ModmailMessage,
@@ -164,7 +164,7 @@ class Reaction:
             if not hasattr(self, k):
                 setattr(self, k, v)
 
-    def copy(self) -> Reaction:
+    def copy(self) -> 'Reaction':
         return type(self)(self._schema, **self._data)
 
     def __str__(self):
