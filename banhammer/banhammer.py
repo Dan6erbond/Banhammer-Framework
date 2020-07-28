@@ -8,11 +8,9 @@ import apraw
 import discord
 from apraw.utils import ExponentialCounter
 
-from .const import logger
+from .const import BANHAMMER_PURPLE, logger
 from .models import MessageBuilder, ReactionHandler, RedditItem, Subreddit
 from .utils import reddit_helper
-
-banhammer_purple = discord.Colour(0).from_rgb(207, 206, 255)
 
 
 class Banhammer:
@@ -20,7 +18,7 @@ class Banhammer:
     The main Banhammer class that manages the event loop to poll Reddit and forward items to configured callables.
     """
 
-    def __init__(self, reddit: apraw.Reddit, max_loop_time: int = 16, bot: discord.Client = None, embed_color: discord.Colour = banhammer_purple,
+    def __init__(self, reddit: apraw.Reddit, max_loop_time: int = 16, bot: discord.Client = None, embed_color: discord.Colour = BANHAMMER_PURPLE,
                  change_presence: bool = False, message_builder: MessageBuilder = MessageBuilder(), reaction_handler: ReactionHandler = ReactionHandler()):
         """
         Create a Banhammer instance.
@@ -388,40 +386,39 @@ class Banhammer:
         s = str(c) if not isinstance(c, discord.Embed) else json.dumps(c.to_dict())
         return await reddit_helper.get_item(self.reddit, self.subreddits, s)
 
-    def get_reactions_embed(self):
+    def get_reactions_embed(self, embed_color: discord.Color = None):
         """
         Load an embed with all the configured reactions per subreddit.
+
+        Parameters
+        ----------
+        embed_color : discord.Color
+            The color to be used for the embed, if not specified, the
+            :attr:`~banhammer.Banhammer.embed_color` is used.
 
         Returns
         -------
         embed: discord.Embed
             The embed listing all the configured reactions per subreddit.
         """
-        embed = discord.Embed(
-            colour=self.embed_color
-        )
-        embed.title = "Configured reactions"
-        for sub in self.subreddits:
-            embed.add_field(name="/r/" + str(sub),
-                            value="\n".join([repr(r) for r in sub.reactions]),
-                            inline=False)
-        return embed
+        return self.message_builder.get_reactions_embed(self.subreddits)
 
-    def get_subreddits_embed(self):
+    def get_subreddits_embed(self, embed_color: discord.Color = None):
         """
         Load an embed with all the configured subreddits and their enabled streams.
+
+        Parameters
+        ----------
+        embed_color : discord.Color
+            The color to be used for the embed, if not specified, the
+            :attr:`~banhammer.Banhammer.embed_color` is used.
 
         Returns
         -------
         embed: discord.Embed
             The embed of all the subreddits and their enabled streams.
         """
-        embed = discord.Embed(
-            colour=self.embed_color
-        )
-        embed.title = "Subreddits' statuses"
-        embed.description = "\n".join([s.status for s in self.subreddits])
-        return embed
+        return self.message_builder.get_subreddits_embed(self.subreddits)
 
     def run(self):
         """

@@ -1,12 +1,14 @@
 from datetime import datetime
+from typing import List
 
 import discord
 from apraw.models import ModmailConversation, ModmailMessage
 from discord.utils import escape_markdown
 
-from ..const import BOT_DISCLAIMER, logger
+from ..const import BANHAMMER_PURPLE, BOT_DISCLAIMER, logger
 from .item import RedditItem
 from .reaction import ReactionPayload
+from .subreddit import Subreddit
 
 
 class MessageBuilder:
@@ -147,3 +149,53 @@ class MessageBuilder:
         embed.description = f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}."
 
         return embed
+
+    def get_reactions_embed(self, subreddits: List[Subreddit], embed_color: discord.Color = None):
+        """
+        Load an embed with all the configured reactions per subreddit.
+
+        Parameters
+        ----------
+        subreddits : List[Subreddit]
+            The subreddits to be included in the overview.
+        embed_color : discord.Color
+            The color to be used for the embed, if not specified, the
+            :attr:`~banhammer.Banhammer.embed_color` is used.
+
+        Returns
+        -------
+        embed: discord.Embed
+            The embed listing all the configured reactions per subreddit.
+        """
+        embed = discord.Embed(
+            title="Configured reactions",
+            colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
+        )
+        for sub in subreddits:
+            embed.add_field(name="/r/" + str(sub),
+                            value="\n".join([repr(r) for r in sub.reactions]),
+                            inline=False)
+        return embed
+
+    def get_subreddits_embed(self, subreddits: List[Subreddit], embed_color: discord.Color = None):
+        """
+        Load an embed with all the configured subreddits and their enabled streams.
+
+        Parameters
+        ----------
+        subreddits : List[Subreddit]
+            The subreddits to be included in the overview.
+        embed_color : discord.Color
+            The color to be used for the embed, if not specified, the
+            :attr:`~banhammer.Banhammer.embed_color` is used.
+
+        Returns
+        -------
+        embed: discord.Embed
+            The embed of all the subreddits and their enabled streams.
+        """
+        return discord.Embed(
+            title="Subreddits' statuses",
+            description="\n".join([s.status for s in subreddits]),
+            colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
+        )
