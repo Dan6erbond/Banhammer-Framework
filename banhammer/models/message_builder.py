@@ -138,6 +138,7 @@ class MessageBuilder:
             payload.actions.append("dismissed")
 
         embed = discord.Embed(
+            description=f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}.",
             colour=embed_color or payload.item.subreddit.banhammer.embed_color
         )
 
@@ -146,7 +147,6 @@ class MessageBuilder:
         author_name = escape_markdown(await payload.item.get_author_name())
 
         embed.set_author(name=f"{payload.item.type.title()} {' and '.join(payload.actions)} by {payload.user}!")
-        embed.description = f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}."
 
         return embed
 
