@@ -157,7 +157,7 @@ class Reaction:
         self._schema = {**self.SCHEMA, **(schema or {})}
 
         self._data = {**self._schema, **kwargs}
-        self._data["emoji"] = self._data["emoji"]["emoji"].strip()
+        self._data["emoji"] = self._data["emoji"].strip()
         self._data["distinguish_reply"] = self._data["distinguish_reply"] or self._data["sticky_reply"]
 
         for k, v in self._data.items():
