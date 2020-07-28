@@ -422,7 +422,7 @@ class Banhammer:
 
     def run(self):
         """
-        Start the banhammer poll loop.
+        Add the Banhammer poll loop to the ``asyncio`` event loop.
         """
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "WELCOME.md"))
         with open(path) as f:
