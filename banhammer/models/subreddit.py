@@ -70,7 +70,8 @@ class Subreddit:
 
         return str
 
-    def get_contact_url(self):
+    @property
+    def contact_url(self):
         return "https://www.reddit.com/message/compose/?to=/r/" + self.name
 
     async def get_subreddit(self):

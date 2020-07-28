@@ -13,7 +13,7 @@ class TestSubreddit:
 
     @pytest.mark.asyncio
     async def test_contact_url(self, subreddit: Subreddit):
-        url = subreddit.get_contact_url()
+        url = subreddit.contact_url
         assert url == "https://www.reddit.com/message/compose/?to=/r/banhammerdemo"
 
     @pytest.mark.asyncio

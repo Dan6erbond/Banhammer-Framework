@@ -114,12 +114,12 @@ class MessageBuilder:
 
     def get_ban_message(self, item: RedditItem, ban_duration: int):
         ban_type = "permanent" if not ban_duration else "temporary"
-        disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
+        disclaimer = BOT_DISCLAIMER.format(item.subreddit.contact_url)
         return f"Our moderator team has reviewed [this post]({item.url}) and decided to give you a {ban_type} ban. " \
                f"If you wish to appeal this ban, please respond to this message.\n\n{disclaimer}"
 
     def format_reply(self, item: RedditItem, reply: str):
-        disclaimer = BOT_DISCLAIMER.format(item.subreddit.get_contact_url())
+        disclaimer = BOT_DISCLAIMER.format(item.subreddit.contact_url)
         return f"{reply}\n\n{disclaimer}"
 
     async def get_payload_message(self, payload: ReactionPayload):
