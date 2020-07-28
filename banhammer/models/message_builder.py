@@ -143,10 +143,10 @@ class MessageBuilder:
             colour=embed_color or payload.item.subreddit.banhammer.embed_color
         )
 
+        author_name = escape_markdown(await payload.item.get_author_name())
+
         embed.description = f"[{payload.item.type.title()}]({payload.item.url}) by /u/{author_name}."
         embed.timestamp = datetime.utcnow()
-
-        author_name = escape_markdown(await payload.item.get_author_name())
 
         embed.set_author(name=f"{payload.item.type.title()} {' and '.join(payload.actions)} by {payload.user}!")
 
