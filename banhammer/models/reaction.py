@@ -138,31 +138,34 @@ class ReactionHandler:
 
 class Reaction:
 
-    def __init__(self, **kwargs):
-        self.config = kwargs
+    SCHEMA = {
+        "type": "",
+        "flair": "",
+        "approve": False,
+        "mark_nsfw": False,
+        "lock": False,
+        "reply": "",
+        "sticky_reply": True,
+        "distinguish_reply": True,
+        "ban": None,
+        "archive": False,
+        "mute": False,
+        "min_votes": 1
+    }
 
-        self.emoji = kwargs["emoji"].strip()
+    def __init__(self, schema: Dict = None, **kwargs):
+        self._schema = {**self.SCHEMA, **(schema or {})}
 
-        data = {
-            "type": "",
-            "flair": "",
-            "approve": False,
-            "mark_nsfw": False,
-            "lock": False,
-            "reply": "",
-            "sticky_reply": True,
-            "distinguish_reply": True,
-            "ban": None,
-            "archive": False,
-            "mute": False,
-            "min_votes": 1,
-            **kwargs
-        }
+        self._data = {**self._schema, **kwargs}
+        self._data["emoji"] = self._data["emoji"]["emoji"].strip()
+        self._data["distinguish_reply"] = self._data["distinguish_reply"] or self._data["sticky_reply"]
 
-        data["distinguish_reply"] = data["distinguish_reply"] or data["sticky_reply"]
+        for k, v in self._data.items():
+            if not hasattr(self, k):
+                setattr(self, k, v)
 
-        for k, v in data.items():
-            setattr(self, k, v)
+    def copy(self) -> Reaction:
+        return type(self)(self._schema, **self._data)
 
     def __str__(self):
         return self.emoji
@@ -205,10 +208,10 @@ class Reaction:
 
     def eligible(self, item: Union[Submission, Comment, ModmailMessage, ModmailConversation]):
         if isinstance(item, Submission):
-            if self.type == "" or self.type == "submission":
+            if not self.type or self.type == "submission":
                 return True
         elif isinstance(item, Comment):
-            if self.type == "" or self.type == "comment":
+            if not self.type or self.type == "comment":
                 return True
         elif isinstance(item, (ModmailMessage, ModmailConversation)):
             if self.type == "mail":
