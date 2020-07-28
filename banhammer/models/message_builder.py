@@ -205,3 +205,29 @@ class MessageBuilder:
         embed.timestamp = datetime.utcnow()
         return embed
 
+    async def get_subreddit_reactions_embed(self, subreddit: Subreddit, embed_color: discord.Color = None):
+        embed = discord.Embed(
+            colour=embed_color or subreddit.banhammer.embed_color
+        )
+
+        embed.timestamp = datetime.utcnow()
+
+        sub = await subreddit.get_subreddit()
+        embed.set_author(
+            name=f"/r/{subreddit} Configured Reactions",
+            url=f"https://www.reddit.com/r/{subreddit}/wiki/banhammer-reactions",
+            icon_url=sub.community_icon or discord.Embed.Empty)
+
+        fields = list()
+        for reaction in sub.reactions:
+            text = repr(reaction).replace(str(reaction) + " | ", "")
+            if reaction.reply:
+                text.replace(" | reply", "")
+                text += f"\n\n**Reply**\n>>> {reaction.reply}"
+                fields.append({"name": str(reaction), "value": text})
+            else:
+                fields = [{"name": str(reaction), "value": text}, *fields]
+        for field in fields:
+            embed.add_field(**field)
+
+        return embed
