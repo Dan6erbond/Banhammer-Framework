@@ -18,7 +18,7 @@ class Banhammer:
     The main Banhammer class that manages the event loop to poll Reddit and forward items to configured callables.
     """
 
-    def __init__(self, reddit: apraw.Reddit, max_loop_time: int = 16, bot: discord.Client = None, embed_color: discord.Colour = BANHAMMER_PURPLE,
+    def __init__(self, reddit: apraw.Reddit, counter: ExponentialCounter = ExponentialCounter(16), bot: discord.Client = None, embed_color: discord.Colour = BANHAMMER_PURPLE,
                  change_presence: bool = False, message_builder: MessageBuilder = MessageBuilder(), reaction_handler: ReactionHandler = ReactionHandler()):
         """
         Create a Banhammer instance.
@@ -27,8 +27,8 @@ class Banhammer:
         ----------
         reddit : apraw.Reddit
             The Reddit instance with which Subreddits are constructed and requests are made.
-        max_loop_time : int, optional
-            The maximum number of seconds to wait in between polls if no items were retrieved, by default 16.
+        counter : ExponentialCounter, optional
+            The counter to use to increase/decrease wait times based on whether items were found.
         bot : discord.Client, optional
             The discord.Client in case presence should be changed, by default ``None``.
         embed_color : discord.Colour, optional
@@ -43,19 +43,20 @@ class Banhammer:
             :class:`~banhammer.models.ReactionPayload`, by default ReactionHandler().
         """
         self.reddit = reddit
-        self.subreddits = list()
-        self.loop = asyncio.get_event_loop()
-
         self.item_funcs = list()
         self.action_funcs = list()
 
-        self.max_loop_time = max_loop_time
-
         self.message_builder = message_builder
         self.reaction_handler = reaction_handler
-        self.bot = bot
         self.embed_color = embed_color
-        self.change_presence = change_presence
+
+        self._bot = bot
+        self._change_presence = change_presence
+        self._counter = counter
+
+        self.subreddits = list()
+
+        self._loop = asyncio.get_event_loop()
 
     async def add_subreddits(self, *subs):
         """
