@@ -171,6 +171,9 @@ class MessageBuilder:
             title="Configured reactions",
             colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
         )
+
+        embed.timestamp = datetime.utcnow()
+
         for sub in subreddits:
             embed.add_field(name="/r/" + str(sub),
                             value="\n".join([repr(r) for r in sub.reactions]),
@@ -194,8 +197,10 @@ class MessageBuilder:
         embed: discord.Embed
             The embed of all the subreddits and their enabled streams.
         """
-        return discord.Embed(
+        embed = discord.Embed(
             title="Subreddits' statuses",
             description="\n".join([s.status for s in subreddits]),
             colour=embed_color or subreddits[0].banhammer.embed_color if subreddits else BANHAMMER_PURPLE
         )
+        embed.timestamp = datetime.utcnow()
+        return
