@@ -496,7 +496,7 @@ class Banhammer:
         """
         return self.message_builder.get_subreddits_embed(self.subreddits, *args, **kwargs)
 
-    def run(self):
+    def start(self):
         """
         Add the Banhammer poll loop to the ``asyncio`` event loop.
         """
