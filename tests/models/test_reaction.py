@@ -43,7 +43,10 @@ class TestReaction:
     async def test_copy(self, subreddit: Subreddit):
         await subreddit.load_reactions()
 
-        new = subreddit.reactions[0].copy()
+        old = subreddit.reactions[0]
+        new = old.copy()
+
+        assert isinstance(new, type(old))
 
         for key in new.SCHEMA:
-            assert getattr(new, key) == getattr(subreddit.reactions[0], key)
+            assert getattr(new, key) == getattr(old, key)
