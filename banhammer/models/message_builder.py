@@ -64,7 +64,7 @@ class MessageBuilder:
 
             if item.item.is_self:
                 embed.add_field(name="Body", value=item.body, inline=False)
-            elif "i.redd.it" in item.item.url:
+            elif "i.redd.it" in item.item.url or any(item.item.url.endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".gif")):
                 embed.set_image(url=item.item.url)
             elif not item.item._data.get("poll_data", None):
                 embed.add_field(
