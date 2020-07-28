@@ -219,7 +219,7 @@ class MessageBuilder:
             icon_url=sub.community_icon or discord.Embed.Empty)
 
         fields = list()
-        for reaction in sub.reactions:
+        for reaction in subreddit.reactions:
             text = repr(reaction).replace(str(reaction) + " | ", "")
             if reaction.reply:
                 text.replace(" | reply", "")
