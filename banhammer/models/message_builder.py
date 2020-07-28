@@ -62,6 +62,9 @@ class MessageBuilder:
                 value=escape_markdown(item.item.title),
                 inline=False)
 
+            if item.item.link_flair_text:
+                embed.description = f"Flair: `{item.item.link_flair_text}`"
+
             if item.item.is_self:
                 embed.add_field(name="Body", value=item.body, inline=False)
             elif "i.redd.it" in item.item.url or any(item.item.url.endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".gif")):
