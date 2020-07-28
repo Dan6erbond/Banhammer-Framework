@@ -31,8 +31,8 @@ class RedditItem:
     async def get_message(self):
         return await self.subreddit.banhammer.message_builder.get_item_message(self)
 
-    async def get_embed(self, embed_color: discord.Color = None):
-        return await self.subreddit.banhammer.message_builder.get_item_embed(self, embed_color)
+    async def get_embed(self, *args, **kwargs):
+        return await self.subreddit.banhammer.message_builder.get_item_embed(self, *args, **kwargs)
 
     def format_reply(self, reply: str):
         return self.subreddit.banhammer.message_builder.format_reply(self, reply)

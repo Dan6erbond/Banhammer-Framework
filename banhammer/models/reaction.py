@@ -30,8 +30,8 @@ class ReactionPayload:
     async def get_message(self):
         return await self.item.subreddit.banhammer.message_builder.get_payload_message(self)
 
-    async def get_embed(self):
-        return await self.item.subreddit.banhammer.message_builder.get_payload_embed(self)
+    async def get_embed(self, *args, **kwargs):
+        return await self.item.subreddit.banhammer.message_builder.get_payload_embed(self, *args, **kwargs)
 
     def __repr__(self):
         return f"<ReactionPayload item={self.item} approved={self.approved} actions={self.actions}>"

@@ -386,7 +386,7 @@ class Banhammer:
         s = str(c) if not isinstance(c, discord.Embed) else json.dumps(c.to_dict())
         return await reddit_helper.get_item(self.reddit, self.subreddits, s)
 
-    def get_reactions_embed(self, embed_color: discord.Color = None):
+    def get_reactions_embed(self, *args, **kwargs):
         """
         Load an embed with all the configured reactions per subreddit.
 
@@ -401,9 +401,9 @@ class Banhammer:
         embed: discord.Embed
             The embed listing all the configured reactions per subreddit.
         """
-        return self.message_builder.get_reactions_embed(self.subreddits)
+        return self.message_builder.get_reactions_embed(self.subreddits, *args, **kwargs)
 
-    def get_subreddits_embed(self, embed_color: discord.Color = None):
+    def get_subreddits_embed(self, *args, **kwargs):
         """
         Load an embed with all the configured subreddits and their enabled streams.
 
@@ -418,7 +418,7 @@ class Banhammer:
         embed: discord.Embed
             The embed of all the subreddits and their enabled streams.
         """
-        return self.message_builder.get_subreddits_embed(self.subreddits)
+        return self.message_builder.get_subreddits_embed(self.subreddits, *args, **kwargs)
 
     def run(self):
         """
