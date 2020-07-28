@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Union
 
 import discord
@@ -19,6 +20,7 @@ class ReactionPayload:
         self.approved = False
         self.reply = ""
         self.emoji = ""
+        self.performed_utc = datetime.utcnow()
 
     def feed(self, item: RedditItem, approved: bool, user: str = "", emoji: str = "", reply: str = ""):
         self.item = item
@@ -35,6 +37,17 @@ class ReactionPayload:
 
     def __repr__(self):
         return f"<ReactionPayload item={self.item} approved={self.approved} actions={self.actions}>"
+
+    def to_dict(self, convert_item=True, convert_datetime=False):
+        return {
+            "item": self.item.url if convert_item else self.item,
+            "user": self.user,
+            "actions": self.actions,
+            "approved": self.approved,
+            "reply": self.reply,
+            "emoji": self.emoji,
+            "performed_utc": self.performed_utc.timestamp if convert_datetime else self.performed_utc
+        }
 
 
 class ReactionHandler:
