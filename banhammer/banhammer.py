@@ -2,14 +2,16 @@ import asyncio
 import json
 import os
 import re
-from typing import Awaitable, Callable, Union
+from typing import Awaitable, Callable, Dict, Tuple, Union
 
 import apraw
 import discord
 from apraw.utils import ExponentialCounter
 
 from .const import BANHAMMER_PURPLE, logger
-from .models import MessageBuilder, ReactionHandler, RedditItem, Subreddit
+from .models import (EventFilter, EventHandler, GeneratorIdentifier,
+                     ItemAttribute, MessageBuilder, ReactionHandler,
+                     RedditItem, Subreddit)
 from .utils import reddit_helper
 
 
@@ -43,9 +45,6 @@ class Banhammer:
             :class:`~banhammer.models.ReactionPayload`, by default ReactionHandler().
         """
         self.reddit = reddit
-        self.item_funcs = list()
-        self.action_funcs = list()
-
         self.message_builder = message_builder
         self.reaction_handler = reaction_handler
         self.embed_color = embed_color
@@ -56,6 +55,7 @@ class Banhammer:
 
         self.subreddits = list()
 
+        self._event_handlers = list()
         self._loop = asyncio.get_event_loop()
 
     async def add_subreddits(self, *subs):
@@ -112,12 +112,12 @@ class Banhammer:
                 pass
         """
         def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_new_func(func, **kwargs)
+            self.add_new_handler(func, **kwargs)
             return func
 
         return assign
 
-    def add_new_func(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
+    def add_new_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
         Add a function to handle new posts.
 
@@ -128,7 +128,23 @@ class Banhammer:
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_items_func(func, "get_new", **kwargs)
+        self.add_event_handler(func, GeneratorIdentifier.NEW, **kwargs)
+
+    async def handle_new(self, item: RedditItem):
+        """
+        Handle Reddit items from the new queues.
+
+        The default implementation of this method calls the appropriate handlers that were
+        assigned using Banhammer's decorators. If overriden, it is recommended to make a
+        ``super()`` call, otherwise handlers may be missed.
+
+        Parameters
+        ----------
+        item : RedditItem
+            The item to forward to handlers.
+        """
+        for handler in self._event_handlers:
+            await handler(item, GeneratorIdentifier.NEW)
 
     def comments(self, **kwargs):
         """
@@ -143,12 +159,12 @@ class Banhammer:
                 pass
         """
         def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_comments_func(func, **kwargs)
+            self.add_comments_handler(func, **kwargs)
             return func
 
         return assign
 
-    def add_comments_func(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
+    def add_comments_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
         Add a function to handle comments.
 
@@ -159,7 +175,23 @@ class Banhammer:
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_items_func(func, "get_comments", **kwargs)
+        self.add_event_handler(func, GeneratorIdentifier.COMMENTS, **kwargs)
+
+    async def handle_comments(self, item: RedditItem):
+        """
+        Handle Reddit items from the comment queues.
+
+        The default implementation of this method calls the appropriate handlers that were
+        assigned using Banhammer's decorators. If overriden, it is recommended to make a
+        ``super()`` call, otherwise handlers may be missed.
+
+        Parameters
+        ----------
+        item : RedditItem
+            The item to forward to handlers.
+        """
+        for handler in self._event_handlers:
+            await handler(item, GeneratorIdentifier.COMMENTS)
 
     def mail(self, **kwargs):
         """
@@ -174,12 +206,12 @@ class Banhammer:
                 pass
         """
         def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_mail_func(func, **kwargs)
+            self.add_mail_handler(func, **kwargs)
             return func
 
         return assign
 
-    def add_mail_func(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
+    def add_mail_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
         Add a function to handle modmail.
 
@@ -190,7 +222,23 @@ class Banhammer:
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_items_func(func, "get_mail", **kwargs)
+        self.add_event_handler(func, GeneratorIdentifier.MAIL, **kwargs)
+
+    async def handle_mail(self, item: RedditItem):
+        """
+        Handle Reddit items from the mail queues.
+
+        The default implementation of this method calls the appropriate handlers that were
+        assigned using Banhammer's decorators. If overriden, it is recommended to make a
+        ``super()`` call, otherwise handlers may be missed.
+
+        Parameters
+        ----------
+        item : RedditItem
+            The item to forward to handlers.
+        """
+        for handler in self._event_handlers:
+            await handler(item, GeneratorIdentifier.MAIL)
 
     def queue(self, **kwargs):
         """
@@ -205,12 +253,12 @@ class Banhammer:
                 pass
         """
         def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_queue_func(func, **kwargs)
+            self.add_queue_handler(func, **kwargs)
             return func
 
         return assign
 
-    def add_queue_func(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
+    def add_queue_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
         Add a function to handle unmoderated posts.
 
@@ -221,7 +269,23 @@ class Banhammer:
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_items_func(func, "get_queue", **kwargs)
+        self.add_event_handler(func, GeneratorIdentifier.QUEUE, **kwargs)
+
+    async def handle_queue(self, item: RedditItem):
+        """
+        Handle Reddit items from the modqueue.
+
+        The default implementation of this method calls the appropriate handlers that were
+        assigned using Banhammer's decorators. If overriden, it is recommended to make a
+        ``super()`` call, otherwise handlers may be missed.
+
+        Parameters
+        ----------
+        item : RedditItem
+            The item to forward to handlers.
+        """
+        for handler in self._event_handlers:
+            await handler(item, GeneratorIdentifier.QUEUE)
 
     def reports(self, **kwargs):
         """
@@ -236,12 +300,12 @@ class Banhammer:
                 pass
         """
         def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_report_func(func, **kwargs)
+            self.add_reports_handler(func, **kwargs)
             return func
 
         return assign
 
-    def add_report_func(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
+    def add_reports_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
         Add a function to handle reported posts.
 
@@ -252,84 +316,23 @@ class Banhammer:
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_items_func(func, "get_reports", **kwargs)
+        self.add_event_handler(func, GeneratorIdentifier.REPORTS, **kwargs)
 
-    def add_items_func(self, func: Callable[[RedditItem], Awaitable[None]], sub_func: str, **kwargs):
+    async def handle_reports(self, item: RedditItem):
         """
-        Add a function to handle the items from a specific generator in the
-        :class:`~banhammer.models.Subreddit` class.
+        Handle Reddit items from the reports queue.
+
+        The default implementation of this method calls the appropriate handlers that were
+        assigned using Banhammer's decorators. If overriden, it is recommended to make a
+        ``super()`` call, otherwise handlers may be missed.
 
         Parameters
         ----------
-        func : Callable[[RedditItem], Awaitable[None]]
-            The function that will be called when items are retrieved.
-        sub_func : str
-            The name of the generator found in the :class:`~banhammer.models.Subreddit` class.
-        subreddit : str or Subreddit
-            The subreddit to poll with this function.
+        item : RedditItem
+            The item to forward to handlers.
         """
-        if asyncio.iscoroutinefunction(func):
-            self.item_funcs.append({
-                "func": func,
-                "sub": kwargs["subreddit"] if "subreddit" in kwargs else None,
-                "sub_func": sub_func
-            })
-
-    async def send_items(self):
-        """
-        Start the loop to poll Reddit and send items.
-        """
-        counter = ExponentialCounter(self.max_loop_time)
-
-        while True:
-            found = False
-
-            if self.bot and self.change_presence:
-                try:
-                    watching = discord.Activity(type=discord.ActivityType.watching, name="Reddit")
-                    await self.bot.change_presence(activity=watching)
-                except Exception as e:
-                    logger.error(f"Failed to change bot presence: {e}")
-
-            for func in self.item_funcs:
-                if func["sub"]:
-                    subs = [sub for sub in self.subreddits if str(sub).lower() == func["sub"].lower()]
-                else:
-                    subs = self.subreddits
-                for sub in subs:
-                    sub_func = getattr(sub, func["sub_func"])
-                    try:
-                        async for post in sub_func():
-                            found = True
-                            await func["func"](post)
-                    except Exception as e:
-                        logger.error(f"Failed to retrieve post from {func['sub_func']} in {sub}: {e}")
-
-            for func in self.action_funcs:
-                if func["sub"]:
-                    subs = [sub for sub in self.subreddits if str(sub).lower() == func["sub"].lower()]
-                else:
-                    subs = self.subreddits
-                for sub in subs:
-                    try:
-                        async for action in sub.get_mod_actions(func["mods"]):
-                            found = True
-                            await func["func"](action)
-                    except Exception as e:
-                        logger.error(f"Failed to retrieve mod action from {sub}: {e}")
-
-            if self.bot is not None and self.change_presence:
-                try:
-                    await self.bot.change_presence(activity=None)
-                except Exception as e:
-                    logger.error(f"Failed to change bot presence: {e}")
-
-            if not found:
-                wait_time = counter.count()
-            else:
-                wait_time = counter.reset()
-
-            await asyncio.sleep(wait_time)
+        for handler in self._event_handlers:
+            await handler(item, GeneratorIdentifier.REPORTS)
 
     def mod_actions(self, *args, **kwargs):
         """
@@ -345,12 +348,12 @@ class Banhammer:
                 pass
         """
         def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_mod_actions_func(func, *args, **kwargs)
+            self.add_mod_actions_handler(func, *args, **kwargs)
             return func
 
         return assign
 
-    def add_mod_actions_func(self, func: Callable[[RedditItem], Awaitable[None]], *args, **kwargs):
+    def add_mod_actions_handler(self, func: Callable[[RedditItem], Awaitable[None]], *args, **kwargs):
         """
         Add a function to handle mod actions.
 
@@ -363,12 +366,84 @@ class Banhammer:
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
+        self.add_event_handler(
+            func,
+            GeneratorIdentifier.MOD_ACTIONS,
+            EventFilter(ItemAttribute.MOD, *(mod for mod in kwargs.get("mods", tuple())), *args),
+            **kwargs)
+
+    async def handle_mod_actions(self, item: RedditItem):
+        """
+        Handle Reddit items from the mod action queues.
+
+        The default implementation of this method calls the appropriate handlers that were
+        assigned using Banhammer's decorators. If overriden, it is recommended to make a
+        ``super()`` call, otherwise handlers may be missed.
+
+        Parameters
+        ----------
+        item : RedditItem
+            The item to forward to handlers.
+        """
+        for handler in self._event_handlers:
+            await handler(item, GeneratorIdentifier.MOD_ACTIONS)
+
+    def add_event_handler(self, func: Callable[[RedditItem], Awaitable[None]],
+                          identifier: GeneratorIdentifier, *args, **kwargs):
+        """
+        Add a function to handle the items from a specific generator in the
+        :class:`~banhammer.models.Subreddit` class.
+
+        Parameters
+        ----------
+        func : Callable[[RedditItem], Awaitable[None]]
+            The function that will be called when items are retrieved.
+        identifier : GeneratorIdentifier
+            The identifier used to retrieve the subreddit's generator as well as the internal handler.
+        subreddit : str or Subreddit
+            The subreddit to poll with this function.
+        """
         if asyncio.iscoroutinefunction(func):
-            self.action_funcs.append({
-                "func": func,
-                "mods": kwargs["mods"] if "mods" in kwargs else list(args),
-                "sub": kwargs["subreddit"] if "subreddit" in kwargs else None
-            })
+            if kwargs.get("subreddit", None):
+                if isinstance(kwargs["subreddit"], (str, apraw.models.Subreddit, Subreddit)):
+                    args = (*args, EventFilter(ItemAttribute.SUBREDDIT, str(kwargs["subreddit"])))
+                else:
+                    args = (*args, EventFilter(ItemAttribute.SUBREDDIT, *(sub for sub in kwargs["subreddit"])))
+
+            self._event_handlers.append(EventHandler(func, identifier, *args))
+
+    async def send_items(self):
+        """
+        Start the loop to poll Reddit and send items.
+        """
+        while True:
+            if self._bot and self._change_presence:
+                try:
+                    watching = discord.Activity(type=discord.ActivityType.watching, name="Reddit")
+                    await self._bot.change_presence(activity=watching)
+                except Exception as e:
+                    logger.error(f"Failed to change bot presence: {e}")
+
+            funcs = set()
+
+            for handler in self._event_handlers:
+                funcs.update((func, handler._identifier) for func in handler.get_sub_funcs(self.subreddits))
+
+            found = False
+            for func in funcs:
+                async for item in func[0]():
+                    found = True
+                    await getattr(self, f"handle_{func[1]}")(item)
+
+            if self._bot is not None and self._change_presence:
+                try:
+                    await self._bot.change_presence(activity=None)
+                except Exception as e:
+                    logger.error(f"Failed to change bot presence: {e}")
+
+            wait_time = (found and self._counter.reset()) or self._counter.count()
+
+            await asyncio.sleep(wait_time)
 
     async def get_item(self, c: Union[str, discord.Embed]):
         """
@@ -433,5 +508,5 @@ class Banhammer:
             print(re.sub(r"\*\*(.+)\*\*", r"{}\1{}".format(BOLD, END), f.read()))
             print("")
 
-        if self.item_funcs or self.action_funcs:
-            self.loop.create_task(self.send_items())
+        if self._event_handlers:
+            self._loop.create_task(self.send_items())
