@@ -139,7 +139,7 @@ class MessageBuilder:
         if not payload.actions:
             payload.actions.append("dismissed")
 
-        embed = discord.Embed(
+        embed = embed_template or discord.Embed(
             colour=embed_color or payload.item.subreddit.banhammer.embed_color
         )
 
