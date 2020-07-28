@@ -108,6 +108,9 @@ class Subreddit:
                 except Exception as e:
                     logger.error(f"Couldn't create wikipage: {e}")
 
+    async def get_reactions_embed(self, embed_color: discord.Color = None):
+        return await self.banhammer.message_builder.get_subreddit_reactions_embed(self, embed_color)
+
     def get_reactions(self, item: RedditItem):
         return [r for r in self.reactions if r.eligible(item)]
 
