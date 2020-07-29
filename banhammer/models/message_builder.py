@@ -38,11 +38,21 @@ class MessageBuilder:
         )
 
         if isinstance(item.item, ModmailConversation):
-            embed.timestamp = datetime.utcfromtimestamp(item.item.last_updated)
+            try:
+                embed.timestamp = datetime.utcfromtimestamp(item.item.last_updated)
+            except Exception as e:
+                logger.error(f"Error setting timestamp <{item.item.last_updated}>: {e}")
         elif isinstance(item.item, ModmailMessage):
-            embed.timestamp = datetime.utcfromtimestamp(item.item.conversation.last_updated)
+            try:
+                timestamp = int(float(item.item.conversation.last_updated))
+                embed.timestamp = datetime.utcfromtimestamp(timestamp)
+            except Exception as e:
+                logger.error(f"Error converting timestamp <{item.item.conversation.last_updated}> to int: {e}")
         else:
-            embed.timestamp = datetime.utcfromtimestamp(item.item._data["created_utc"])
+            try:
+                embed.timestamp = datetime.utcfromtimestamp(item.item._data["created_utc"])
+            except Exception as e:
+                logger.error(f"Error setting timestamp <{item.item._data['created_utc']}>: {e}")
 
         if item.type in ["submission", "comment"]:
             if item.source == "reports":

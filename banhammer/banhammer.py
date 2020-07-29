@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 import re
-from typing import Awaitable, Callable, Dict, Tuple, Union
+from typing import Awaitable, Callable, Dict, Tuple, Union, Any
 
 import apraw
 import discord
@@ -418,6 +418,9 @@ class Banhammer(metaclass=BanhammerMeta):
         self._event_handlers.append(event_handler)
         return event_handler
 
+    async def on_handler_error(self, error: Any):
+        pass
+
     async def send_items(self):
         """
         Start the loop to poll Reddit and send items.
@@ -442,9 +445,16 @@ class Banhammer(metaclass=BanhammerMeta):
 
             found = False
             for func in funcs:
-                async for item in func[0]():
-                    found = True
-                    await getattr(self, f"handle_{func[1]}")(item)
+                try:
+                    async for item in func[0]():
+                        found = True
+                        try:
+                            await getattr(self, f"handle_{func[1]}")(item)
+                        except Exception as e:
+                            logger.error(f"Handler error in handle_{func[1]} with item from {func[0]}: {e}")
+                            await self.on_handler_error(e)
+                except Exception as e:
+                    logger.error(f"Error fetching item from {func[0]}: {e}")
 
             if self._bot is not None and self._change_presence:
                 try:
