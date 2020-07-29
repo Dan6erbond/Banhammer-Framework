@@ -177,11 +177,9 @@ class Banhammer(metaclass=BanhammerMeta):
             async def handle_comments(item: RedditItem):
                 pass
         """
-        def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_comments_handler(func, **kwargs)
-            return func
-
-        return assign
+        def wrapper(func: Callable[[RedditItem], Awaitable[None]]):
+            return self.add_comments_handler(func, **kwargs)
+        return wrapper
 
     def add_comments_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
@@ -194,7 +192,7 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_event_handler(func, GeneratorIdentifier.COMMENTS, **kwargs)
+        return self.add_event_handler(func, GeneratorIdentifier.COMMENTS, **kwargs)
 
     async def handle_comments(self, item: RedditItem):
         """
@@ -224,11 +222,9 @@ class Banhammer(metaclass=BanhammerMeta):
             async def handle_mail(item: RedditItem):
                 pass
         """
-        def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_mail_handler(func, **kwargs)
-            return func
-
-        return assign
+        def wrapper(func: Callable[[RedditItem], Awaitable[None]]):
+            return self.add_mail_handler(func, **kwargs)
+        return wrapper
 
     def add_mail_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
@@ -241,7 +237,7 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_event_handler(func, GeneratorIdentifier.MAIL, **kwargs)
+        return self.add_event_handler(func, GeneratorIdentifier.MAIL, **kwargs)
 
     async def handle_mail(self, item: RedditItem):
         """
@@ -271,11 +267,9 @@ class Banhammer(metaclass=BanhammerMeta):
             async def handle_queue(item: RedditItem):
                 pass
         """
-        def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_queue_handler(func, **kwargs)
-            return func
-
-        return assign
+        def wrapper(func: Callable[[RedditItem], Awaitable[None]]):
+            return self.add_queue_handler(func, **kwargs)
+        return wrapper
 
     def add_queue_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
@@ -288,7 +282,7 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_event_handler(func, GeneratorIdentifier.QUEUE, **kwargs)
+        return self.add_event_handler(func, GeneratorIdentifier.QUEUE, **kwargs)
 
     async def handle_queue(self, item: RedditItem):
         """
@@ -318,11 +312,9 @@ class Banhammer(metaclass=BanhammerMeta):
             async def handle_reports(item: RedditItem):
                 pass
         """
-        def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_reports_handler(func, **kwargs)
-            return func
-
-        return assign
+        def wrapper(func: Callable[[RedditItem], Awaitable[None]]):
+            return self.add_reports_handler(func, **kwargs)
+        return wrapper
 
     def add_reports_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
@@ -335,7 +327,7 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_event_handler(func, GeneratorIdentifier.REPORTS, **kwargs)
+        return self.add_event_handler(func, GeneratorIdentifier.REPORTS, **kwargs)
 
     async def handle_reports(self, item: RedditItem):
         """
@@ -366,11 +358,9 @@ class Banhammer(metaclass=BanhammerMeta):
             async def handle_mod_actions(item: RedditItem):
                 pass
         """
-        def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_mod_actions_handler(func, *args, **kwargs)
-            return func
-
-        return assign
+        def wrapper(func: Callable[[RedditItem], Awaitable[None]]):
+            return self.add_mod_actions_handler(func, *args, **kwargs)
+        return wrapper
 
     def add_mod_actions_handler(self, func: Callable[[RedditItem], Awaitable[None]], *args, **kwargs):
         """
@@ -385,10 +375,10 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_event_handler(
+        return self.add_event_handler(
             func,
             GeneratorIdentifier.MOD_ACTIONS,
-            EventFilter(ItemAttribute.MOD, *(mod for mod in kwargs.get("mods", tuple())), *args),
+            EventFilter(ItemAttribute.MOD, *kwargs.get("mods", tuple()), *args),
             **kwargs)
 
     async def handle_mod_actions(self, item: RedditItem):
@@ -422,14 +412,9 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        if asyncio.iscoroutinefunction(func):
-            if kwargs.get("subreddit", None):
-                if isinstance(kwargs["subreddit"], (str, apraw.models.Subreddit, Subreddit)):
-                    args = (*args, EventFilter(ItemAttribute.SUBREDDIT, str(kwargs["subreddit"])))
-                else:
-                    args = (*args, EventFilter(ItemAttribute.SUBREDDIT, *(sub for sub in kwargs["subreddit"])))
-
-            self._event_handlers.append(EventHandler(func, identifier, *args))
+        event_handler = EventHandler.create_event_handler(func, identifier, *args, **kwargs)
+        self._event_handlers.append(event_handler)
+        return event_handler
 
     async def send_items(self):
         """
