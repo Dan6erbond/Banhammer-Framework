@@ -73,9 +73,9 @@ class Banhammer(metaclass=BanhammerMeta):
         self._counter = counter
 
         self.subreddits = list()
+        self.loop = getattr(self, "loop", None) or asyncio.get_event_loop()
 
         self._event_handlers = getattr(self, "_event_handlers", list())
-        self._loop = asyncio.get_event_loop()
 
     async def add_subreddits(self, *subs):
         """
@@ -529,4 +529,4 @@ class Banhammer(metaclass=BanhammerMeta):
             print(re.sub(r"\*\*(.+)\*\*", r"{}\1{}".format(BOLD, END), f.read()))
             print("")
 
-        self._loop.create_task(self.send_items())
+        self.loop.create_task(self.send_items())
