@@ -430,8 +430,13 @@ class Banhammer(metaclass=BanhammerMeta):
 
             funcs = set()
 
-            for handler in self._event_handlers:
-                funcs.update((func, handler._identifier) for func in handler.get_sub_funcs(self.subreddits))
+            if self._event_handlers:
+                for handler in self._event_handlers:
+                    funcs.update((func, handler._identifier) for func in handler.get_sub_funcs(self.subreddits))
+            else:
+                for subreddit in self.subreddits:
+                    funcs.update((getattr(subreddit, f"get_{identifier}"), identifier)
+                                 for identifier in GeneratorIdentifier)
 
             found = False
             for func in funcs:
