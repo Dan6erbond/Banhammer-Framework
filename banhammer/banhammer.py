@@ -161,10 +161,8 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            handler_args = (GeneratorIdentifier.NEW, item)
-            if handler._takes_self:
-                handler_args = (self, *handler_args)
-            await handler(*handler_args)
+            handler_args = (self, *handler_args) if handler._takes_self else (item,)
+            await handler(GeneratorIdentifier.NEW, *handler_args)
 
     def comments(self, **kwargs):
         """
@@ -209,10 +207,8 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            handler_args = (GeneratorIdentifier.COMMENTS, item)
-            if handler._takes_self:
-                handler_args = (self, *handler_args)
-            await handler(*handler_args)
+            handler_args = (self, *handler_args) if handler._takes_self else (item,)
+            await handler(GeneratorIdentifier.COMMENTS, *handler_args)
 
     def mail(self, **kwargs):
         """
@@ -257,10 +253,8 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            handler_args = (GeneratorIdentifier.MAIL, item)
-            if handler._takes_self:
-                handler_args = (self, *handler_args)
-            await handler(*handler_args)
+            handler_args = (self, *handler_args) if handler._takes_self else (item,)
+            await handler(GeneratorIdentifier.MAIL, *handler_args)
 
     def queue(self, **kwargs):
         """
@@ -305,10 +299,8 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            handler_args = (GeneratorIdentifier.QUEUE, item)
-            if handler._takes_self:
-                handler_args = (self, *handler_args)
-            await handler(*handler_args)
+            handler_args = (self, *handler_args) if handler._takes_self else (item,)
+            await handler(GeneratorIdentifier.QUEUE, *handler_args)
 
     def reports(self, **kwargs):
         """
@@ -353,10 +345,8 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            handler_args = (GeneratorIdentifier.REPORTS, item)
-            if handler._takes_self:
-                handler_args = (self, *handler_args)
-            await handler(*handler_args)
+            handler_args = (self, *handler_args) if handler._takes_self else (item,)
+            await handler(GeneratorIdentifier.REPORTS, *handler_args)
 
     def mod_actions(self, *args, **kwargs):
         """
@@ -406,10 +396,8 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            handler_args = (GeneratorIdentifier.MOD_ACTIONS, item)
-            if handler._takes_self:
-                handler_args = (self, *handler_args)
-            await handler(*handler_args)
+            handler_args = (self, *handler_args) if handler._takes_self else (item,)
+            await handler(GeneratorIdentifier.MOD_ACTIONS, *handler_args)
 
     def add_event_handler(self, func: Callable[[RedditItem], Awaitable[None]],
                           identifier: GeneratorIdentifier, *args, **kwargs):

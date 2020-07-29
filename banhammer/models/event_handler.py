@@ -125,7 +125,7 @@ class EventHandler:
             handler = EventHandler(handler, identifier, *args)
         else:
             handler._identifiers.add(identifier)
-            handler._filters.extend(*args)
+            handler._filters.extend(args)
 
         return handler
 
@@ -141,7 +141,7 @@ class EventHandler:
         return wrapper
 
     async def __call__(self, identifier: GeneratorIdentifier, *args):
-        valid = identifier in self._identifiers
+        valid = identifier not in self._identifiers
 
         if not valid:
             return
