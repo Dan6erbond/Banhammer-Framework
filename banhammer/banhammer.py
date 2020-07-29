@@ -163,7 +163,7 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            await handler(item, GeneratorIdentifier.NEW)
+            await handler(self, item) if handler._takes_self else await handler(item)
 
     def comments(self, **kwargs):
         """
@@ -208,7 +208,7 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            await handler(item, GeneratorIdentifier.COMMENTS)
+            await handler(self, item) if handler._takes_self else await handler(item)
 
     def mail(self, **kwargs):
         """
@@ -253,7 +253,7 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            await handler(item, GeneratorIdentifier.MAIL)
+            await handler(self, item) if handler._takes_self else await handler(item)
 
     def queue(self, **kwargs):
         """
@@ -298,7 +298,7 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            await handler(item, GeneratorIdentifier.QUEUE)
+            await handler(self, item) if handler._takes_self else await handler(item)
 
     def reports(self, **kwargs):
         """
@@ -343,7 +343,7 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            await handler(item, GeneratorIdentifier.REPORTS)
+            await handler(self, item) if handler._takes_self else await handler(item)
 
     def mod_actions(self, *args, **kwargs):
         """
@@ -395,7 +395,7 @@ class Banhammer(metaclass=BanhammerMeta):
             The item to forward to handlers.
         """
         for handler in self._event_handlers:
-            await handler(item, GeneratorIdentifier.MOD_ACTIONS)
+            await handler(self, item) if handler._takes_self else await handler(item)
 
     def add_event_handler(self, func: Callable[[RedditItem], Awaitable[None]],
                           identifier: GeneratorIdentifier, *args, **kwargs):
