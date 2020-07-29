@@ -152,4 +152,5 @@ class EventHandler:
     def get_sub_funcs(self, subreddits: List['Subreddit']):
         for subreddit in subreddits:
             if all(f.is_subreddit_valid(subreddit) for f in self._filters):
-                yield getattr(subreddit, f"get_{self._identifier}")
+                for identifier in self._identifiers:
+                    yield getattr(subreddit, f"get_{identifier}"), identifier

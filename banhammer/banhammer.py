@@ -446,7 +446,7 @@ class Banhammer(metaclass=BanhammerMeta):
 
             if self._event_handlers:
                 for handler in self._event_handlers:
-                    funcs.update((func, handler._identifier) for func in handler.get_sub_funcs(self.subreddits))
+                    funcs.update(func for func in handler.get_sub_funcs(self.subreddits))
             else:
                 for subreddit in self.subreddits:
                     funcs.update((getattr(subreddit, f"get_{identifier}"), identifier)
