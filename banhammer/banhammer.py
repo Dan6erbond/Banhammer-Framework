@@ -15,7 +15,26 @@ from .models import (EventFilter, EventHandler, GeneratorIdentifier,
 from .utils import reddit_helper
 
 
-class Banhammer:
+class BanhammerMeta(type):
+
+    def __new__(cls, name, bases, dct):
+        banhammer = super().__new__(cls, name, bases, dct)
+
+        event_handlers = list()
+
+        for base in reversed(banhammer.__mro__):
+            for name, attr in list(base.__dict__.items()):
+                if isinstance(attr, EventHandler):
+                    attr._takes_self = True
+                    event_handlers.append(attr)
+                    delattr(base, name)
+
+        banhammer._event_handlers = event_handlers
+
+        return banhammer
+
+
+class Banhammer(metaclass=BanhammerMeta):
     """
     The main Banhammer class that manages the event loop to poll Reddit and forward items to configured callables.
     """
@@ -55,7 +74,7 @@ class Banhammer:
 
         self.subreddits = list()
 
-        self._event_handlers = list()
+        self._event_handlers = getattr(self, "_event_handlers", list())
         self._loop = asyncio.get_event_loop()
 
     async def add_subreddits(self, *subs):
