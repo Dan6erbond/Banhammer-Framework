@@ -130,11 +130,9 @@ class Banhammer(metaclass=BanhammerMeta):
             async def handle_new(item: RedditItem):
                 pass
         """
-        def assign(func: Callable[[RedditItem], Awaitable[None]]):
-            self.add_new_handler(func, **kwargs)
-            return func
-
-        return assign
+        def wrapper(func: Callable[[RedditItem], Awaitable[None]]):
+            return self.add_new_handler(func, **kwargs)
+        return wrapper
 
     def add_new_handler(self, func: Callable[[RedditItem], Awaitable[None]], **kwargs):
         """
@@ -147,7 +145,7 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        self.add_event_handler(func, GeneratorIdentifier.NEW, **kwargs)
+        return self.add_event_handler(func, GeneratorIdentifier.NEW, **kwargs)
 
     async def handle_new(self, item: RedditItem):
         """
