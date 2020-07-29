@@ -508,5 +508,4 @@ class Banhammer:
             print(re.sub(r"\*\*(.+)\*\*", r"{}\1{}".format(BOLD, END), f.read()))
             print("")
 
-        if self._event_handlers:
-            self._loop.create_task(self.send_items())
+        self._loop.create_task(self.send_items())
