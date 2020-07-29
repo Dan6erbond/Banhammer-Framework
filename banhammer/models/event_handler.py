@@ -59,7 +59,8 @@ class EventFilter:
         return True
 
     def is_subreddit_valid(self, subreddit: 'Subreddit'):
-        return any(str(subreddit).lower() == str(v).lower() for v in self._values) or not self._values
+        return self._attribute != ItemAttribute.SUBREDDIT or any(
+            str(subreddit).lower() == str(v).lower() for v in self._values) or not self._values
 
 
 class EventHandler:
@@ -156,6 +157,6 @@ class EventHandler:
 
     def get_sub_funcs(self, subreddits: List['Subreddit']):
         for subreddit in subreddits:
-            if all(f.is_subreddit_valid(subreddit) for f in self._filters):
+            if all(f.is_subreddit_valid(subreddit) for f in self._filters if f._attribute == ItemAttribute.SUBREDDIT):
                 for identifier in self._identifiers:
                     yield getattr(subreddit, f"get_{identifier}"), identifier
