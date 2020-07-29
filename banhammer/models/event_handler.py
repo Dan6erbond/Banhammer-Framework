@@ -141,7 +141,7 @@ class EventHandler:
         return wrapper
 
     async def __call__(self, identifier: GeneratorIdentifier, *args):
-        valid = identifier not in self._identifiers
+        valid = identifier in self._identifiers
 
         if not valid:
             return
