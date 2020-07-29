@@ -9,18 +9,26 @@ class TestBanhammer:
     async def test_banhammer_meta(self):
         handle_new_called = 0
         handle_comments_called = 0
+        handle_mod_actions_called = 0
 
         class CustomBanhammer(Banhammer):
             @EventHandler.new()
             @EventHandler.filter(ItemAttribute.AUTHOR, "Dan6erbond")
             @EventHandler.filter(ItemAttribute.SUBREDDIT, "banhammerdemo")
-            async def some_name(self, item: RedditItem):
+            async def handle_new(self, item: RedditItem):
                 nonlocal handle_new_called
                 assert self, not item
                 handle_new_called += 1
 
+            @EventHandler.mod_actions("Anti-Evil Operations")
+            async def handle_mod_actions(self, item: RedditItem):
+                nonlocal handle_mod_actions_called
+                assert self, not item
+                handle_mod_actions_called += 1
+
         cb = CustomBanhammer(None)
         assert len(cb._event_handlers[0]._filters) == 2
+        assert len(cb._event_handlers[1]._filters[0]._values) == 1
 
         @cb.comments()
         async def handle_comments(item: RedditItem):
@@ -36,3 +44,4 @@ class TestBanhammer:
 
         assert handle_new_called == 1
         assert handle_comments_called == 1
+        assert handle_mod_actions_called == 1
