@@ -66,7 +66,7 @@ class EventHandler:
 
     def __init__(self, callback: Callable[['RedditItem'], Awaitable[None]], identifier: GeneratorIdentifier, *args):
         self._callback = callback
-        self._identifiers = [identifier]
+        self._identifiers = {identifier}
         self._filters = list(args)
         self._takes_self = False
 
@@ -109,20 +109,25 @@ class EventHandler:
         return wrapper
 
     @classmethod
-    def create_event_handler(cls, func: Union['EventHandler', Callable[['RedditItem'], Awaitable[None]]],
+    def create_event_handler(cls, handler: Union['EventHandler', Callable[['RedditItem'], Awaitable[None]]],
                              identifier: GeneratorIdentifier, *args, **kwargs):
-        if not isinstance(func, EventHandler) and not asyncio.iscoroutinefunction(func):
+        if not isinstance(handler, EventHandler) and not asyncio.iscoroutinefunction(handler):
             raise TypeError("Event handler must be a coroutine function or of type <banhammer.models.EventHandler>.")
 
-        args = (*args, *getattr(func, "_filters", tuple()))
+        args = (*args, *getattr(handler, "_filters", tuple()))
 
         values = tuple(*kwargs.get("subreddits", tuple()), str(kwargs.get("subreddit", "")))
         if values:
             event_filter = EventFilter(ItemAttribute.SUBREDDIT, values)
             args = (*args, event_filter)
 
-        event_handler = EventHandler(func, identifier, *args)
-        return event_handler
+        if not isinstance(handler, EventHandler):
+            handler = EventHandler(handler, identifier, *args)
+        else:
+            handler._identifiers.add(identifier)
+            handler._filters.extend(*args)
+
+        return handler
 
     @classmethod
     def filter(cls, attribute: ItemAttribute, *args, **kwargs):
