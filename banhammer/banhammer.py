@@ -373,11 +373,10 @@ class Banhammer(metaclass=BanhammerMeta):
         subreddit : str or Subreddit
             The subreddit to poll with this function.
         """
-        return self.add_event_handler(
-            func,
-            GeneratorIdentifier.MOD_ACTIONS,
-            EventFilter(ItemAttribute.MOD, *kwargs.get("mods", tuple()), *args),
-            **kwargs)
+        event_filter = EventFilter(ItemAttribute.MOD, *kwargs.get("mods", tuple()), *args)
+        if event_filter._values:
+            args = (event_filter)
+        return self.add_event_handler(func, GeneratorIdentifier.MOD_ACTIONS, *args, **kwargs)
 
     async def handle_mod_actions(self, item: RedditItem):
         """

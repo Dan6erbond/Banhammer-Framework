@@ -97,14 +97,16 @@ class EventHandler:
     @classmethod
     def reports(cls, **kwargs):
         def wrapper(func: Callable[['RedditItem'], Awaitable[None]]):
-            return cls.create_event_handler(func, GeneratorIdentifier.REPORTS, GeneratorIdentifier.REPORTS, **kwargs)
+            return cls.create_event_handler(func, GeneratorIdentifier.REPORTS, **kwargs)
         return wrapper
 
     @classmethod
     def mod_actions(cls, *args, **kwargs):
         def wrapper(func: Callable[['RedditItem'], Awaitable[None]]):
             event_filter = EventFilter(ItemAttribute.MOD, *kwargs.get("mods", tuple()), *args)
-            return cls.create_event_handler(func, GeneratorIdentifier.MOD_ACTIONS, event_filter, **kwargs)
+            if event_filter._values:
+                args = (event_filter)
+            return cls.create_event_handler(func, GeneratorIdentifier.MOD_ACTIONS, *args, **kwargs)
         return wrapper
 
     @classmethod
