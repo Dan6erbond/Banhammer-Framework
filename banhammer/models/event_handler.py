@@ -104,9 +104,10 @@ class EventHandler:
     def mod_actions(cls, *args, **kwargs):
         def wrapper(func: Callable[['RedditItem'], Awaitable[None]]):
             event_filter = EventFilter(ItemAttribute.MOD, *kwargs.get("mods", tuple()), *args)
+            create_args = tuple()
             if event_filter._values:
-                args = (event_filter)
-            return cls.create_event_handler(func, GeneratorIdentifier.MOD_ACTIONS, *args, **kwargs)
+                create_args = (*create_args, event_filter)
+            return cls.create_event_handler(func, GeneratorIdentifier.MOD_ACTIONS, *create_args, **kwargs)
         return wrapper
 
     @classmethod
