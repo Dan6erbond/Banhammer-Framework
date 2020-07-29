@@ -42,7 +42,7 @@ class MessageBuilder:
         elif isinstance(item.item, ModmailMessage):
             embed.timestamp = datetime.utcfromtimestamp(item.item.conversation.last_updated)
         else:
-            embed.timestamp = item.item.created_utc
+            embed.timestamp = datetime.utcfromtimestamp(item.item._data["created_utc"])
 
         if item.type in ["submission", "comment"]:
             if item.source == "reports":
