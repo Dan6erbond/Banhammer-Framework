@@ -66,7 +66,7 @@ class EventHandler:
 
     def __init__(self, callback: Callable[['RedditItem'], Awaitable[None]], identifier: GeneratorIdentifier, *args):
         self._callback = callback
-        self._identifier = identifier
+        self._identifiers = [identifier]
         self._filters = list(args)
         self._takes_self = False
 
@@ -111,10 +111,10 @@ class EventHandler:
         return wrapper
 
     @classmethod
-    def create_event_handler(cls, func: Callable[['RedditItem'], Awaitable[None]],
+    def create_event_handler(cls, func: Union['EventHandler', Callable[['RedditItem'], Awaitable[None]]],
                              identifier: GeneratorIdentifier, *args, **kwargs):
-        if not asyncio.iscoroutinefunction(func):
-            raise TypeError("Event handler must be a coroutine function.")
+        if not isinstance(func, EventHandler) and not asyncio.iscoroutinefunction(func):
+            raise TypeError("Event handler must be a coroutine function or of type <banhammer.models.EventHandler>.")
 
         args = (*args, *getattr(func, "_filters", tuple()))
 
@@ -137,8 +137,12 @@ class EventHandler:
             return handler
         return wrapper
 
-    async def __call__(self, *args):
-        valid = True
+    async def __call__(self, identifier: GeneratorIdentifier, *args):
+        valid = identifier in self._identifiers
+
+        if not valid:
+            return
+
         for f in self._filters:
             if not await f.is_item_valid(args[-1]):
                 valid = False
