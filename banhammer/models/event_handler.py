@@ -42,12 +42,12 @@ class EventFilter:
             if item.type != "mod action":
                 return False
             mod_name = await item.get_author_name()
-            match = not any(mod_name.lower() == str(v).lower() for v in self._values)
+            match = any(mod_name.lower() == str(v).lower() for v in self._values)
         elif self._attribute == ItemAttribute.AUTHOR:
             author_name = await item.get_author_name()
-            match = not any(author_name.lower() == str(v).lower() for v in self._values)
+            match = any(author_name.lower() == str(v).lower() for v in self._values)
         elif self._attribute == ItemAttribute.SUBREDDIT:
-            match = not any(str(item.subreddit).lower() == str(v).lower() for v in self._values)
+            match = any(str(item.subreddit).lower() == str(v).lower() for v in self._values)
 
         return (not self._reverse and match) or (self._reverse and not match)
 
