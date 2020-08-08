@@ -38,9 +38,9 @@ class ReactionPayload:
     def __repr__(self):
         return f"<ReactionPayload item={self.item} approved={self.approved} actions={self.actions}>"
 
-    def to_dict(self, convert_item=True, convert_datetime=False):
+    async def to_dict(self, convert_item=True, convert_datetime=False):
         return {
-            "item": self.item.url if convert_item else self.item,
+            "item": await self.item.to_dict() if convert_item else self.item,
             "user": self.user,
             "actions": self.actions,
             "approved": self.approved,

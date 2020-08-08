@@ -31,6 +31,15 @@ class RedditItem:
     async def get_message(self):
         return await self.subreddit.banhammer.message_builder.get_item_message(self)
 
+    async def to_dict(self):
+        return {
+            "url": self.url,
+            "author": await self.get_author_name(),
+            "type": self.type,
+            "source": self.source,
+            "body": self.body
+        }
+
     async def get_embed(self, *args, **kwargs):
         return await self.subreddit.banhammer.message_builder.get_item_embed(self, *args, **kwargs)
 
