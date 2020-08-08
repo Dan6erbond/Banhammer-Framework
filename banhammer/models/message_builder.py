@@ -70,10 +70,7 @@ class MessageBuilder:
                          icon_url=subreddit.community_icon or discord.Embed.Empty)
 
         if item.type == "submission":
-            embed.add_field(
-                name="Title",
-                value=escape_markdown(item.item.title),
-                inline=False)
+            embed.add_field(name="Title", value=escape_markdown(item.item.title), inline=False)
 
             if item.item.link_flair_text:
                 embed.description = f"Flair: `{item.item.link_flair_text}`"
@@ -83,10 +80,7 @@ class MessageBuilder:
             elif "i.redd.it" in item.item.url or any(item.item.url.endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".gif")):
                 embed.set_image(url=item.item.url)
             elif not item.item._data.get("poll_data", None):
-                embed.add_field(
-                    name="URL",
-                    value=escape_markdown(item.item.url),
-                    inline=False)
+                embed.add_field(name="URL", value=escape_markdown(item.item.url), inline=False)
 
             if item.item._data.get("poll_data", None):
                 options = [
