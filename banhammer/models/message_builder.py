@@ -234,7 +234,9 @@ class MessageBuilder:
 
         fields = list()
         for reaction in subreddit.reactions:
-            title = f"{reaction.__comments__.splitlines()[0].replace('#', '', 1).strip().title()}: {reaction}" if reaction.__comments__ else f"`{reaction}`"
+            name = ' '.join(w.title() if w.islower() else w for w in reaction.__comments__.splitlines()
+                            [0].replace('#', '', 1).strip().split()) if reaction.__comments__ else ""
+            title = f"{name}: {reaction}" if name else f"`{reaction}`"
             text = repr(reaction).replace(str(reaction) + " | ", "")
 
             if reaction.reply:
