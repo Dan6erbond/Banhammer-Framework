@@ -237,7 +237,7 @@ class MessageBuilder:
             text = repr(reaction).replace(str(reaction) + " | ", "")
             if reaction.reply:
                 text.replace(" | reply", "")
-                text += f"\n\n**Reply**\n>>> {reaction.reply}"
+                text += f"\n\n**Reply**\n>>> {reaction.reply.splitlines()[0]}"
                 fields.append({"name": str(reaction), "value": text})
             else:
                 fields = [{"name": str(reaction), "value": text}, *fields]
