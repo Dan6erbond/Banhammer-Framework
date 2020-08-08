@@ -84,11 +84,12 @@ class RedditItem:
             else:
                 return author["name"]
 
-    def get_reactions(self):
+    @property
+    def reactions(self):
         return self.subreddit.get_reactions(self.item)
 
     async def add_reactions(self, message: discord.Message):
-        for r in self.get_reactions():
+        for r in self.reactions:
             try:
                 await message.add_reaction(r.emoji)
             except Exception as e:

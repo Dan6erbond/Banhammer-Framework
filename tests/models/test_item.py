@@ -80,7 +80,7 @@ class TestRedditItem:
             assert author_name.lower() == author.name.lower()
 
     @pytest.mark.asyncio
-    async def test_get_reactions(self, reddit: apraw.Reddit, subreddit: Subreddit):
+    async def test_item_reactions(self, reddit: apraw.Reddit, subreddit: Subreddit):
         await subreddit.load_reactions()
 
         sub = await reddit.subreddit("banhammerdemo")
@@ -91,7 +91,7 @@ class TestRedditItem:
             break
 
         if item:
-            for r in item.get_reactions():
+            for r in item.reactions:
                 assert isinstance(r, Reaction)
 
     @pytest.mark.asyncio
@@ -106,10 +106,10 @@ class TestRedditItem:
             break
 
         if item:
-            emojis = [r.emoji for r in item.get_reactions()]
+            emojis = [r.emoji for r in item.reactions]
             if emojis:
                 reaction = item.get_reaction(emojis[0])
-                assert reaction == item.get_reactions()[0]
+                assert reaction == item.reactions[0]
 
     @pytest.mark.asyncio
     async def test_url(self, reddit: apraw.Reddit, subreddit: Subreddit):
