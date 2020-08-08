@@ -234,13 +234,15 @@ class MessageBuilder:
 
         fields = list()
         for reaction in subreddit.reactions:
+            title = f"{reaction.__comments__.splitlines()[0].replace('#', '', 1).strip().title()}: {reaction}" if reaction.__comments__ else f"`{reaction}`"
             text = repr(reaction).replace(str(reaction) + " | ", "")
+
             if reaction.reply:
                 text.replace(" | reply", "")
                 text += f"\n\n**Reply**\n>>> {reaction.reply.splitlines()[0]}"
-                fields.append({"name": str(reaction), "value": text})
+                fields.append({"name": title, "value": text})
             else:
-                fields = [{"name": str(reaction), "value": text}, *fields]
+                fields = [{"name": title, "value": text}, *fields]
         for field in fields:
             embed.add_field(**field)
 

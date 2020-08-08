@@ -59,13 +59,17 @@ def get_list(str):
 
     dicts = list()
     s = ""
+    comments = list()
     for line in str.splitlines():
         line = strip(line)
         if line.startswith("-"):
-            dicts.append(get_dict(s))
+            d = get_dict(s)
+            d["__comments__"] = "\n".join(comments)
+            dicts.append(d)
             s = ""
-        elif strip(line).startswith("#"):
-            continue
+            comments = list()
+        elif line.startswith("#"):
+            comments.append(line)
         else:
             s += "\n" + line
 
