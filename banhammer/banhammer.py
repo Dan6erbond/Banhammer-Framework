@@ -162,7 +162,11 @@ class Banhammer(metaclass=BanhammerMeta):
         """
         for handler in self._event_handlers:
             handler_args = (self, item) if handler._takes_self else (item,)
-            await handler(GeneratorIdentifier.NEW, *handler_args)
+            try:
+                await handler(GeneratorIdentifier.NEW, *handler_args)
+            except Exception as e:
+                logger.error(f"Handler error in {handler} with item from handle_new: {e}")
+                await self.on_handler_error(e)
 
     def comments(self, **kwargs):
         """
@@ -208,7 +212,11 @@ class Banhammer(metaclass=BanhammerMeta):
         """
         for handler in self._event_handlers:
             handler_args = (self, item) if handler._takes_self else (item,)
-            await handler(GeneratorIdentifier.COMMENTS, *handler_args)
+            try:
+                await handler(GeneratorIdentifier.COMMENTS, *handler_args)
+            except Exception as e:
+                logger.error(f"Handler error in {handler} with item from handle_comments: {e}")
+                await self.on_handler_error(e)
 
     def mail(self, **kwargs):
         """
@@ -254,7 +262,11 @@ class Banhammer(metaclass=BanhammerMeta):
         """
         for handler in self._event_handlers:
             handler_args = (self, item) if handler._takes_self else (item,)
-            await handler(GeneratorIdentifier.MAIL, *handler_args)
+            try:
+                await handler(GeneratorIdentifier.MAIL, *handler_args)
+            except Exception as e:
+                logger.error(f"Handler error in {handler} with item from handle_mail: {e}")
+                await self.on_handler_error(e)
 
     def queue(self, **kwargs):
         """
@@ -300,7 +312,11 @@ class Banhammer(metaclass=BanhammerMeta):
         """
         for handler in self._event_handlers:
             handler_args = (self, item) if handler._takes_self else (item,)
-            await handler(GeneratorIdentifier.QUEUE, *handler_args)
+            try:
+                await handler(GeneratorIdentifier.QUEUE, *handler_args)
+            except Exception as e:
+                logger.error(f"Handler error in {handler} with item from handle_queue: {e}")
+                await self.on_handler_error(e)
 
     def reports(self, **kwargs):
         """
@@ -346,7 +362,11 @@ class Banhammer(metaclass=BanhammerMeta):
         """
         for handler in self._event_handlers:
             handler_args = (self, item) if handler._takes_self else (item,)
-            await handler(GeneratorIdentifier.REPORTS, *handler_args)
+            try:
+                await handler(GeneratorIdentifier.REPORTS, *handler_args)
+            except Exception as e:
+                logger.error(f"Handler error in {handler} with item from handle_reports: {e}")
+                await self.on_handler_error(e)
 
     def mod_actions(self, *args, **kwargs):
         """
@@ -397,7 +417,11 @@ class Banhammer(metaclass=BanhammerMeta):
         """
         for handler in self._event_handlers:
             handler_args = (self, item) if handler._takes_self else (item,)
-            await handler(GeneratorIdentifier.MOD_ACTIONS, *handler_args)
+            try:
+                await handler(GeneratorIdentifier.MOD_ACTIONS, *handler_args)
+            except Exception as e:
+                logger.error(f"Handler error in {handler} with item from handle_mod_actions: {e}")
+                await self.on_handler_error(e)
 
     def add_event_handler(self, func: Callable[[RedditItem], Awaitable[None]],
                           identifier: GeneratorIdentifier, *args, **kwargs):
