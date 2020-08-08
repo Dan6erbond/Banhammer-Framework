@@ -112,10 +112,13 @@ class MessageBuilder:
                             break
 
             if item.source == "reports":
-                embed.add_field(
-                    name="Reports",
-                    value="\n".join(f"{r[1]} {r[0]}" for r in item.item.user_reports),
-                    inline=False)
+                user_reports = "\n".join(f"{r[1]} {r[0]}" for r in item.item.user_reports)
+                if user_reports:
+                    embed.add_field(name="User Reports", value=user_reports, inline=False)
+
+                mod_reports = "\n".join(f"{r[1]} {r[0]}" for r in item.item.mod_reports)
+                if mod_reports:
+                    embed.add_field(name="Mod Reports", value=mod_reports, inline=False)
         elif item.type in ("comment", "modmail"):
             embed.description = item.body
         elif item.type == "mod action":
